@@ -4,8 +4,6 @@ struct ContentView: View {
     @Environment(SessionStore.self) private var store
 
     var body: some View {
-        @Bindable var store = store
-
         NavigationSplitView {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 140, ideal: 180, max: 260)
@@ -19,27 +17,7 @@ struct ContentView: View {
                 }
             }
         }
-        .toolbar {
-            ToolbarItemGroup(placement: .primaryAction) {
-                // Layout picker — grid buttons
-                Picker("Layout", selection: $store.layout) {
-                    ForEach(LayoutMode.allCases, id: \.self) { mode in
-                        Image(systemName: mode.icon)
-                            .help(mode.rawValue)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 110)
-
-                Button {
-                    store.createSession()
-                } label: {
-                    Image(systemName: "plus")
-                        .foregroundStyle(.secondary)
-                }
-                .help("New Tab (Cmd+T)")
-            }
-        }
+        .toolbar(.hidden)
     }
 }
 

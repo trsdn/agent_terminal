@@ -8,10 +8,14 @@ class TerminalHostView: NSView {
     override var isFlipped: Bool { true }
 
     private var infos: [UUID: TerminalInfo] = [:]
+    private var pendingStarts: [(LocalProcessTerminalView, TerminalSession)] = []
     private var currentVisible: [TerminalSession] = []
     private var currentLayout: LayoutMode = .single
     private var currentSelectedId: UUID?
+    private var currentThemeId: String?
+    private var currentTheme: TerminalTheme?
     private let gap: CGFloat = 1
+    private let padding: CGFloat = 6
 
     struct TerminalInfo {
         let terminalView: LocalProcessTerminalView
@@ -20,15 +24,18 @@ class TerminalHostView: NSView {
     }
 
     // Called by NSViewRepresentable.updateNSView
-    func update(sessions: [TerminalSession], visible: [TerminalSession], selectedId: UUID?, layout: LayoutMode) {
+    func update(sessions: [TerminalSession], visible: [TerminalSession], selectedId: UUID?, layout: LayoutMode, theme: TerminalTheme) {
         let selectionChanged = selectedId != currentSelectedId
+        let themeChanged = theme.id != currentThemeId
         currentVisible = visible
         currentLayout = layout
         currentSelectedId = selectedId
+        currentThemeId = theme.id
+        currentTheme = theme
 
         // Ensure terminals exist
         for session in sessions {
-            ensureTerminal(for: session)
+            ensureTerminal(for: session, theme: theme)
         }
 
         // Remove deleted sessions
@@ -38,27 +45,50 @@ class TerminalHostView: NSView {
             infos.removeValue(forKey: id)
         }
 
+        // Apply theme to all terminals on theme change
+        if themeChanged {
+            for (_, info) in infos {
+                applyTheme(theme, to: info.terminalView)
+            }
+        }
+
         // Toggle visibility
         let visibleIds = Set(visible.map(\.id))
         for (id, info) in infos {
             info.terminalView.isHidden = !visibleIds.contains(id)
         }
 
-        // Layout + focus
+        // Layout + focus + start pending processes
         layoutTerminals()
+        startPendingProcesses(theme: theme)
         if selectionChanged {
             focusSelected()
         }
     }
 
-    private func ensureTerminal(for session: TerminalSession) {
+    private func applyTheme(_ theme: TerminalTheme, to tv: LocalProcessTerminalView) {
+        tv.nativeBackgroundColor = theme.background.nsColor
+        tv.nativeForegroundColor = theme.foreground.nsColor
+        tv.caretColor = theme.cursor.nsColor
+        tv.selectedTextBackgroundColor = theme.selection.nsColor
+
+        if theme.ansiColors.count == 16 {
+            let palette = theme.ansiColors.map(\.swiftTermColor)
+            tv.installColors(palette)
+        }
+
+        tv.setNeedsDisplay(tv.bounds)
+    }
+
+    private func ensureTerminal(for session: TerminalSession, theme: TerminalTheme) {
         guard infos[session.id] == nil else { return }
 
         let tv = LocalProcessTerminalView(frame: bounds)
         tv.font = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
-        tv.nativeBackgroundColor = NSColor(white: 0.08, alpha: 1)
-        tv.nativeForegroundColor = NSColor(white: 0.82, alpha: 1)
-        tv.caretColor = NSColor(red: 0.35, green: 0.75, blue: 1.0, alpha: 1.0)
+        tv.nativeBackgroundColor = theme.background.nsColor
+        tv.nativeForegroundColor = theme.foreground.nsColor
+        tv.caretColor = theme.cursor.nsColor
+        tv.selectedTextBackgroundColor = theme.selection.nsColor
 
         let coord = TerminalCoordinator(session: session)
         tv.processDelegate = coord
@@ -74,11 +104,36 @@ class TerminalHostView: NSView {
         tv.isHidden = true
 
         session.terminalView = tv
-        session.isProcessStarted = true
-        tv.startProcess()
-        session.status = .running
 
         infos[session.id] = TerminalInfo(terminalView: tv, coordinator: coord, monitor: monitor)
+
+        // Defer process start until after layout so terminal has correct size
+        pendingStarts.append((tv, session))
+    }
+
+    private func startPendingProcesses(theme: TerminalTheme?) {
+        guard !pendingStarts.isEmpty, bounds.width > 0, bounds.height > 0 else { return }
+
+        let shell = ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh"
+        let home = ProcessInfo.processInfo.environment["HOME"] ?? NSHomeDirectory()
+        var env = ProcessInfo.processInfo.environment
+        env["PROMPT_EOL_MARK"] = ""
+        env["TERM"] = "xterm-256color"
+        let envArray = env.map { "\($0.key)=\($0.value)" }
+
+        for (tv, session) in pendingStarts {
+            session.isProcessStarted = true
+            tv.startProcess(executable: shell, environment: envArray, currentDirectory: home)
+            session.status = .running
+
+            if let theme, theme.ansiColors.count == 16 {
+                let palette = theme.ansiColors.map(\.swiftTermColor)
+                DispatchQueue.main.async {
+                    tv.installColors(palette)
+                }
+            }
+        }
+        pendingStarts.removeAll()
     }
 
     @objc private func terminalClicked(_ gesture: NSClickGestureRecognizer) {
@@ -101,15 +156,20 @@ class TerminalHostView: NSView {
     override func layout() {
         super.layout()
         layoutTerminals()
+        startPendingProcesses(theme: currentTheme)
     }
 
     private func layoutTerminals() {
         let size = bounds.size
         guard size.width > 0, size.height > 0 else { return }
 
+        let padded = CGSize(width: size.width - padding * 2, height: size.height - padding * 2)
         for (index, session) in currentVisible.enumerated() {
             guard let info = infos[session.id] else { continue }
-            info.terminalView.frame = rectForIndex(index, count: currentVisible.count, layout: currentLayout, in: size)
+            var rect = rectForIndex(index, count: currentVisible.count, layout: currentLayout, in: padded)
+            rect.origin.x += padding
+            rect.origin.y += padding
+            info.terminalView.frame = rect
         }
     }
 
@@ -179,7 +239,12 @@ class TerminalOutputMonitor: NSObject, TerminalViewDelegate {
     }
 
     func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {}
-    func setTerminalTitle(source: TerminalView, title: String) {}
+    func setTerminalTitle(source: TerminalView, title: String) {
+        DispatchQueue.main.async { [weak self] in
+            guard let session = self?.session, !session.isRenaming else { return }
+            session.name = title.isEmpty ? "Shell" : title
+        }
+    }
     func scrolled(source: TerminalView, position: Double) {}
     func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {}
     func requestOpenLink(source: TerminalView, link: String, params: [String : String]) {}
@@ -215,12 +280,13 @@ struct TerminalHostRepresentable: NSViewRepresentable {
     let visibleSessions: [TerminalSession]
     let selectedId: UUID?
     let layout: LayoutMode
+    let theme: TerminalTheme
 
     func makeNSView(context: Context) -> TerminalHostView {
         TerminalHostView(frame: .zero)
     }
 
     func updateNSView(_ nsView: TerminalHostView, context: Context) {
-        nsView.update(sessions: sessions, visible: visibleSessions, selectedId: selectedId, layout: layout)
+        nsView.update(sessions: sessions, visible: visibleSessions, selectedId: selectedId, layout: layout, theme: theme)
     }
 }

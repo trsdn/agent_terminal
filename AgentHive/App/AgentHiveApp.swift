@@ -1,14 +1,18 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 @main
 struct AgentHiveApp: App {
     @State private var store = SessionStore()
+    @State private var themeManager = ThemeManager()
     @State private var inputDetector: InputDetector?
+    @State private var showThemeImporter = false
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environment(store)
+                .environment(themeManager)
                 .frame(minWidth: 700, minHeight: 400)
                 .preferredColorScheme(.dark)
                 .onAppear {
@@ -20,9 +24,21 @@ struct AgentHiveApp: App {
                         inputDetector?.start()
                     }
                 }
+                .fileImporter(
+                    isPresented: $showThemeImporter,
+                    allowedContentTypes: [
+                        UTType(filenameExtension: "itermcolors") ?? .xml,
+                    ],
+                    allowsMultipleSelection: false
+                ) { result in
+                    if case .success(let urls) = result, let url = urls.first {
+                        let accessed = url.startAccessingSecurityScopedResource()
+                        defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+                        try? themeManager.importITermColors(from: url)
+                    }
+                }
         }
         .windowStyle(.hiddenTitleBar)
-        .windowToolbarStyle(.unified)
         .commands {
             CommandGroup(after: .newItem) {
                 Button("New Tab") {
@@ -49,6 +65,44 @@ struct AgentHiveApp: App {
             }
 
             CommandGroup(after: .toolbar) {
+                // Layout
+                Menu("Layout") {
+                    ForEach(LayoutMode.allCases, id: \.self) { mode in
+                        Button {
+                            store.layout = mode
+                        } label: {
+                            if store.layout == mode {
+                                Text("✓ \(mode.rawValue)")
+                            } else {
+                                Text("   \(mode.rawValue)")
+                            }
+                        }
+                    }
+                }
+
+                // Theme
+                Menu("Theme") {
+                    ForEach(themeManager.availableThemes) { theme in
+                        Button {
+                            themeManager.selectTheme(theme)
+                        } label: {
+                            if themeManager.currentTheme.id == theme.id {
+                                Text("✓ \(theme.name)")
+                            } else {
+                                Text("   \(theme.name)")
+                            }
+                        }
+                    }
+
+                    Divider()
+
+                    Button("Import .itermcolors...") {
+                        showThemeImporter = true
+                    }
+                }
+
+                Divider()
+
                 Button("Toggle Debug") {
                     store.showDebug.toggle()
                 }

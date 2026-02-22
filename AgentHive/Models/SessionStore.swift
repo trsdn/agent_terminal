@@ -43,23 +43,33 @@ class SessionStore {
         return groups.first { $0.sessionIds.contains(selectedId) }
     }
 
-    /// Sessions visible in the grid — groups use their layout, ungrouped always single.
+    /// Sessions visible in the grid — groups use their layout, ungrouped use the picker layout.
     var visibleSessions: [TerminalSession] {
         if let group = activeGroup {
             let max = group.layoutMode.maxPanes
             return Array(group.sessionIds.compactMap { session(for: $0) }.prefix(max))
         }
 
-        // Ungrouped: always show just the selected session
-        if let s = selectedSession { return [s] }
-        return Array(ungroupedSessions.prefix(1))
+        // Ungrouped: use picker layout, starting with selected session
+        let maxPanes = layout.maxPanes
+        var visible: [TerminalSession] = []
+        if let s = selectedSession { visible.append(s) }
+        for s in ungroupedSessions where s.id != selectedSessionId {
+            if visible.count >= maxPanes { break }
+            visible.append(s)
+        }
+        return visible.isEmpty ? Array(ungroupedSessions.prefix(1)) : visible
     }
 
     var currentLayout: LayoutMode {
         if let group = activeGroup {
             return group.layoutMode
         }
-        return .single
+        // Cap layout to actual number of ungrouped sessions
+        let count = ungroupedSessions.count
+        if count <= 1 { return .single }
+        if count <= 2 && layout == .grid2x2 { return .sideBySide }
+        return layout
     }
 
     var ungroupedSessions: [TerminalSession] {

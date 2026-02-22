@@ -8,13 +8,16 @@
 
 /* Begin PBXBuildFile section */
 		0416F3FDC46CE679F45038A6 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7867980E82B650126E052E1A /* ContentView.swift */; };
+		05A311C62F8E0F641FB0F9F5 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49E0EF92EAD97F44FF3360E4 /* ThemeManager.swift */; };
 		0D3447975A9AE013230907D0 /* InputDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FBA10437C289FD352F2EBA /* InputDetector.swift */; };
 		167C670B46C0694BFC51E003 /* SidebarTabRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B82225A1DBA41804AE018C /* SidebarTabRow.swift */; };
 		2A1703A5AE1734141A1B6874 /* GridContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113098A7CB94ADE884EBAE62 /* GridContainerView.swift */; };
 		2E98AA147B3D68E478B22795 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 068593613B660BE2C3FD35B5 /* SidebarView.swift */; };
+		31423E0299B8C1C7C8F41118 /* ITermColorsParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847284CB15E856A441EBDA50 /* ITermColorsParser.swift */; };
 		354F1ABE8213F0BC7E7D5C66 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E14F58EFCBD6BD5C05912E /* SessionStore.swift */; };
 		355F32021263FAA3F2D74B02 /* AgentHiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7429D39D5D2B3A2D0862AE1F /* AgentHiveTests.swift */; };
 		3C9B793AE20BE4C288C86199 /* KeyBindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 264C879FA46C1B120626A23D /* KeyBindings.swift */; };
+		41729AF3A3B7B4B9248A1180 /* ThemePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F7CBE7FD6896B91909D7B11 /* ThemePickerView.swift */; };
 		488A57DA0FA4D58B120828A7 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = B1FE5E3347C54F9D1E9646DB /* SwiftTerm */; };
 		5202B701327B82A2D23B5982 /* AppIconSimple.svg in Resources */ = {isa = PBXBuildFile; fileRef = CE4B6F492F1D74ECAEA5968A /* AppIconSimple.svg */; };
 		6F7F11A286CBBAAC1BF8BC3E /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = A6FBFB60C7BF89FF3651FB4C /* AppIcon.svg */; };
@@ -23,6 +26,7 @@
 		AC127EBC3495200F32D20796 /* SessionGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = B620D47BE28ED6849F3EA861 /* SessionGroup.swift */; };
 		AD3E618E35C5D12C380D4E79 /* AgentHiveApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD874AC3515BC7C8CED80AB0 /* AgentHiveApp.swift */; };
 		E2BBF6433024D85007C9AE15 /* TerminalPaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA60A9A2D4513EF63A762A42 /* TerminalPaneView.swift */; };
+		F5BA8B6AF4B010A95FDFE427 /* TerminalTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30C41F74710903DBE733E8CC /* TerminalTheme.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,10 +45,14 @@
 		14B82225A1DBA41804AE018C /* SidebarTabRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarTabRow.swift; sourceTree = "<group>"; };
 		25FBA10437C289FD352F2EBA /* InputDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputDetector.swift; sourceTree = "<group>"; };
 		264C879FA46C1B120626A23D /* KeyBindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyBindings.swift; sourceTree = "<group>"; };
+		2F7CBE7FD6896B91909D7B11 /* ThemePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemePickerView.swift; sourceTree = "<group>"; };
+		30C41F74710903DBE733E8CC /* TerminalTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalTheme.swift; sourceTree = "<group>"; };
+		49E0EF92EAD97F44FF3360E4 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		6CA9A10931A777B22EC29D1C /* AgentHive.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AgentHive.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7429D39D5D2B3A2D0862AE1F /* AgentHiveTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentHiveTests.swift; sourceTree = "<group>"; };
 		74C5FC25F9F680B67DE19C5E /* TerminalSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSession.swift; sourceTree = "<group>"; };
 		7867980E82B650126E052E1A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		847284CB15E856A441EBDA50 /* ITermColorsParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ITermColorsParser.swift; sourceTree = "<group>"; };
 		A6FBFB60C7BF89FF3651FB4C /* AppIcon.svg */ = {isa = PBXFileReference; path = AppIcon.svg; sourceTree = "<group>"; };
 		B620D47BE28ED6849F3EA861 /* SessionGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionGroup.swift; sourceTree = "<group>"; };
 		CE4B6F492F1D74ECAEA5968A /* AppIconSimple.svg */ = {isa = PBXFileReference; path = AppIconSimple.svg; sourceTree = "<group>"; };
@@ -88,6 +96,17 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		401A8E0C2FA1512995E3952A /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				847284CB15E856A441EBDA50 /* ITermColorsParser.swift */,
+				30C41F74710903DBE733E8CC /* TerminalTheme.swift */,
+				49E0EF92EAD97F44FF3360E4 /* ThemeManager.swift */,
+				2F7CBE7FD6896B91909D7B11 /* ThemePickerView.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
 		5654E57C37737B161D63ACE2 /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -127,6 +146,7 @@
 				5654E57C37737B161D63ACE2 /* Models */,
 				1405A8127BCA2304D41DE1E6 /* Resources */,
 				65D13ACF7A5E4B858E878F09 /* Services */,
+				401A8E0C2FA1512995E3952A /* Theme */,
 				AA732CCB943EE5E9E4BC0384 /* Utilities */,
 				6F6490F769C8020D2A3960D5 /* Views */,
 			);
@@ -274,6 +294,7 @@
 				AD3E618E35C5D12C380D4E79 /* AgentHiveApp.swift in Sources */,
 				0416F3FDC46CE679F45038A6 /* ContentView.swift in Sources */,
 				2A1703A5AE1734141A1B6874 /* GridContainerView.swift in Sources */,
+				31423E0299B8C1C7C8F41118 /* ITermColorsParser.swift in Sources */,
 				0D3447975A9AE013230907D0 /* InputDetector.swift in Sources */,
 				3C9B793AE20BE4C288C86199 /* KeyBindings.swift in Sources */,
 				AC127EBC3495200F32D20796 /* SessionGroup.swift in Sources */,
@@ -282,6 +303,9 @@
 				2E98AA147B3D68E478B22795 /* SidebarView.swift in Sources */,
 				E2BBF6433024D85007C9AE15 /* TerminalPaneView.swift in Sources */,
 				A5A442E88DDAC99466CC880C /* TerminalSession.swift in Sources */,
+				F5BA8B6AF4B010A95FDFE427 /* TerminalTheme.swift in Sources */,
+				05A311C62F8E0F641FB0F9F5 /* ThemeManager.swift in Sources */,
+				41729AF3A3B7B4B9248A1180 /* ThemePickerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -3,6 +3,7 @@ import UniformTypeIdentifiers
 
 struct SidebarView: View {
     @Environment(SessionStore.self) private var store
+    @Environment(ThemeManager.self) private var themeManager
 
     var body: some View {
         @Bindable var store = store
@@ -36,7 +37,7 @@ struct SidebarView: View {
         }
         .listStyle(.sidebar)
         .scrollContentBackground(.hidden)
-        .background(Color(nsColor: NSColor(white: 0.10, alpha: 1)))
+        .background(Color(nsColor: themeManager.currentTheme.effectiveSidebarBackground))
         .safeAreaInset(edge: .bottom) {
             statusBar
         }
