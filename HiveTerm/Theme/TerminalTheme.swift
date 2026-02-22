@@ -104,16 +104,16 @@ extension TerminalTheme {
 
 extension TerminalTheme {
     static let builtInThemes: [TerminalTheme] = [
-        .agentHiveDark,
+        .hiveTermDark,
         .dracula,
         .nord,
         .solarizedDark,
         .catppuccinMocha,
     ]
 
-    static let agentHiveDark = TerminalTheme(
-        id: "agenthive-dark",
-        name: "AgentHive Dark",
+    static let hiveTermDark = TerminalTheme(
+        id: "hiveterm-dark",
+        name: "HiveTerm Dark",
         isBuiltIn: true,
         background: "#141414",
         foreground: "#D1D1D1",

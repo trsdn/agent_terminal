@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 @main
-struct AgentHiveApp: App {
+struct HiveTermApp: App {
     @State private var store = SessionStore()
     @State private var themeManager = ThemeManager()
     @State private var inputDetector: InputDetector?

@@ -34,7 +34,7 @@ enum ITermColorsParser {
             if let color = extractColor(from: plist, key: "Ansi \(i) Color") {
                 ansiColors.append(color)
             } else {
-                ansiColors.append(TerminalTheme.agentHiveDark.ansiColors[i])
+                ansiColors.append(TerminalTheme.hiveTermDark.ansiColors[i])
             }
         }
 

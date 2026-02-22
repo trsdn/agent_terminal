@@ -1,6 +1,6 @@
 <div align="center">
 
-# AgentHive
+# HiveTerm
 
 **A native macOS terminal for AI agent workflows.**
 
@@ -18,7 +18,7 @@ Run Claude Code, Copilot CLI, and other agents side-by-side — with instant swi
 
 You're running 4 Claude Code agents across different repos. One is waiting for a `sudo` password. Another finished and needs review. Your terminal has 12 tabs and you're `Cmd+Tab`-ing between windows trying to figure out which agent needs attention.
 
-**AgentHive fixes this.** Every session shows its status at a glance. Sessions waiting for input get highlighted. Group related sessions into a grid and see them all at once.
+**HiveTerm fixes this.** Every session shows its status at a glance. Sessions waiting for input get highlighted. Group related sessions into a grid and see them all at once.
 
 ## Features
 
@@ -45,7 +45,7 @@ You're running 4 Claude Code agents across different repos. One is waiting for a
 ## Architecture
 
 ```
-AgentHive.app
+HiveTerm.app
 ├── SwiftUI              Sidebar, toolbar, window chrome
 ├── AppKit               TerminalHostView — single NSView managing all terminals
 ├── SwiftTerm (SPM)      Terminal emulation, PTY I/O
@@ -78,19 +78,29 @@ The key architectural decision: a single `TerminalHostView` (NSView) owns all te
 ```bash
 git clone https://github.com/trsdn/agent_terminal.git
 cd agent_terminal
-open AgentHive.xcodeproj
+open HiveTerm.xcodeproj
 ```
 
 Or build from the command line:
 
 ```bash
-xcodebuild -scheme AgentHive -configuration Release build
+xcodebuild -scheme HiveTerm -configuration Release build
 ```
+
+### Running locally (Gatekeeper)
+
+Since HiveTerm is not notarized, macOS Gatekeeper will block it on first launch. Remove the quarantine attribute to run it:
+
+```bash
+xattr -cr /path/to/HiveTerm.app
+```
+
+Then open the app normally.
 
 ## Roadmap
 
 - [ ] Tab colors / custom labels per session
-- [ ] Ghostty/iTerm2 color scheme import
+- [x] Ghostty/iTerm2 color scheme import
 - [ ] Split pane resizing via drag
 - [ ] Session persistence across app restarts
 - [ ] Notification when a waiting session gets input

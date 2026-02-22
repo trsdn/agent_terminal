@@ -1,7 +1,7 @@
 import XCTest
-@testable import AgentHive
+@testable import HiveTerm
 
-final class AgentHiveTests: XCTestCase {
+final class HiveTermTests: XCTestCase {
 
     // MARK: - Session CRUD
 

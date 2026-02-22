@@ -1,7 +1,7 @@
 import AppKit
 
 /// Configures global keyboard shortcuts for the application.
-/// Most shortcuts are handled via SwiftUI .commands() in AgentHiveApp,
+/// Most shortcuts are handled via SwiftUI .commands() in HiveTermApp,
 /// but this handles any AppKit-level key bindings needed.
 enum KeyBindings {
     /// Key equivalents for tab switching (Cmd+1 through Cmd+9)
