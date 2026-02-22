@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#0d0d1a"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4fc3f7"/>
+      <stop offset="100%" style="stop-color:#7c4dff"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffb74d"/>
+      <stop offset="100%" style="stop-color:#ff9800"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="512" height="512" rx="110" ry="110" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines (terminal grid feel) -->
+  <line x1="256" y1="100" x2="256" y2="412" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+  <line x1="100" y1="256" x2="412" y2="256" stroke="#ffffff" stroke-opacity="0.04" stroke-width="1"/>
+
+  <!-- Hexagon (hive cell) - outer -->
+  <polygon points="256,88 370,154 370,286 256,352 142,286 142,154"
+           fill="none" stroke="url(#glow)" stroke-width="6" stroke-linejoin="round" opacity="0.3"/>
+
+  <!-- Hexagon - inner -->
+  <polygon points="256,120 348,172 348,276 256,328 164,276 164,172"
+           fill="none" stroke="url(#glow)" stroke-width="3" stroke-linejoin="round" opacity="0.15"/>
+
+  <!-- Terminal prompt cursor block -->
+  <rect x="186" y="185" width="140" height="90" rx="8" ry="8"
+        fill="#0a0a14" stroke="url(#glow)" stroke-width="2.5" opacity="0.95"/>
+
+  <!-- Terminal text lines -->
+  <text x="198" y="213" font-family="SF Mono, Menlo, monospace" font-size="14" fill="#4fc3f7" opacity="0.9">$</text>
+  <rect x="212" y="202" width="50" height="12" rx="2" fill="#4fc3f7" opacity="0.4"/>
+
+  <text x="198" y="233" font-family="SF Mono, Menlo, monospace" font-size="14" fill="#7c4dff" opacity="0.7">&gt;</text>
+  <rect x="212" y="222" width="70" height="12" rx="2" fill="#7c4dff" opacity="0.25"/>
+
+  <!-- Blinking cursor -->
+  <rect x="198" y="244" width="8" height="16" rx="1" fill="url(#amber)" opacity="0.9">
+    <animate attributeName="opacity" values="0.9;0.3;0.9" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- Three status dots (agent indicators) -->
+  <circle cx="200" cy="370" r="8" fill="#4caf50"/>
+  <circle cx="256" cy="370" r="8" fill="#4fc3f7"/>
+  <circle cx="312" cy="370" r="8" fill="#ff9800"/>
+
+  <!-- Small pulse rings on dots -->
+  <circle cx="200" cy="370" r="8" fill="none" stroke="#4caf50" stroke-width="2" opacity="0.4">
+    <animate attributeName="r" values="8;14;8" dur="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="256" cy="370" r="8" fill="none" stroke="#4fc3f7" stroke-width="2" opacity="0.4">
+    <animate attributeName="r" values="8;14;8" dur="2s" begin="0.4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" begin="0.4s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="312" cy="370" r="8" fill="none" stroke="#ff9800" stroke-width="2" opacity="0.4">
+    <animate attributeName="r" values="8;14;8" dur="2s" begin="0.8s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" begin="0.8s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- "AgentHive" text -->
+  <text x="256" y="420" text-anchor="middle" font-family="SF Pro Display, Helvetica Neue, sans-serif"
+        font-size="38" font-weight="600" letter-spacing="3" fill="url(#glow)">AGENTHIVE</text>
+</svg>
