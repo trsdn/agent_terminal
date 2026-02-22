@@ -20,11 +20,15 @@
   <!-- Background -->
   <rect width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
 
-  <!-- Glow behind > chevron -->
+  <!-- Glow layers -->
   <path d="M180,300 L480,512 L180,724" fill="none" stroke="url(#glow)" stroke-width="80" stroke-linecap="round" stroke-linejoin="round" opacity="0.25" filter="url(#neon)"/>
+  <rect x="275" y="425" width="70" height="174" rx="8" fill="url(#glow)" opacity="0.25" filter="url(#neon)"/>
 
-  <!-- > chevron -->
+  <!-- Sideways A: chevron with arms meeting at one point -->
   <path d="M180,300 L480,512 L180,724" fill="none" stroke="url(#glow)" stroke-width="80" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Vertical crossbar between the arms -->
+  <rect x="275" y="425" width="70" height="174" rx="8" fill="url(#glow)"/>
 
   <!-- Glow behind _ underscore -->
   <rect x="540" y="660" width="310" height="64" rx="12" fill="url(#glow)" opacity="0.25" filter="url(#neon)"/>

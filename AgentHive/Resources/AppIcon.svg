@@ -37,7 +37,7 @@
   <text x="198" y="213" font-family="SF Mono, Menlo, monospace" font-size="14" fill="#4fc3f7" opacity="0.9">$</text>
   <rect x="212" y="202" width="50" height="12" rx="2" fill="#4fc3f7" opacity="0.4"/>
 
-  <text x="198" y="233" font-family="SF Mono, Menlo, monospace" font-size="14" fill="#7c4dff" opacity="0.7">&gt;</text>
+  <text x="198" y="233" font-family="SF Mono, Menlo, monospace" font-size="14" fill="#7c4dff" opacity="0.7">A</text>
   <rect x="212" y="222" width="70" height="12" rx="2" fill="#7c4dff" opacity="0.25"/>
 
   <!-- Blinking cursor -->
