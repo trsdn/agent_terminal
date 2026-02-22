@@ -29,6 +29,7 @@ class SessionStore {
     var selectedSessionId: UUID?
     var layout: LayoutMode = .single
     var showDebug: Bool = false
+    var fontSize: CGFloat = 13
 
     var selectedSession: TerminalSession? {
         sessions.first { $0.id == selectedSessionId }

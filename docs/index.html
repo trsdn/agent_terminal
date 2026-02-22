@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HiveTerm — Native macOS Terminal for AI Agent Workflows</title>
+    <meta name="description" content="Run Claude Code, Copilot CLI, and other AI agents side-by-side in a native macOS terminal. Multi-session grid layout, input detection, instant switching, zero Electron overhead.">
+    <meta name="keywords" content="macOS terminal, AI agents, Claude Code, terminal emulator, Swift, multi-session, grid layout, developer tools">
+    <meta name="author" content="trsdn">
+    <meta name="theme-color" content="#0a0a0b">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="HiveTerm — Native macOS Terminal for AI Agent Workflows">
+    <meta property="og:description" content="Run multiple AI agents side-by-side. Multi-session grid, input detection, instant switching. Built with Swift &amp; AppKit.">
+    <meta property="og:image" content="https://trsdn.github.io/agent_terminal/og-image.png">
+    <meta property="og:url" content="https://trsdn.github.io/agent_terminal/">
+    <meta property="og:site_name" content="HiveTerm">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="HiveTerm — Native macOS Terminal for AI Agents">
+    <meta name="twitter:description" content="Run multiple AI agents side-by-side in a native macOS terminal.">
+    <meta name="twitter:image" content="https://trsdn.github.io/agent_terminal/og-image.png">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "HiveTerm",
+        "operatingSystem": "macOS 14+",
+        "applicationCategory": "DeveloperApplication",
+        "description": "A native macOS terminal for AI agent workflows. Run multiple agents side-by-side with grid layout, input detection, and instant switching.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "programmingLanguage": "Swift",
+        "license": "https://opensource.org/licenses/MIT",
+        "url": "https://github.com/trsdn/agent_terminal",
+        "downloadUrl": "https://github.com/trsdn/agent_terminal"
+    }
+    </script>
+
+    <link rel="canonical" href="https://trsdn.github.io/agent_terminal/">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #08080a;
+            --surface: #111114;
+            --surface-2: #18181c;
+            --border: #222228;
+            --border-bright: #333340;
+            --text: #e8e8ed;
+            --text-dim: #8888a0;
+            --text-muted: #55556a;
+            --accent: #d4a04a;
+            --accent-glow: rgba(212, 160, 74, 0.15);
+            --green: #5cb87a;
+            --cyan: #5ab4c5;
+            --red: #c75c5c;
+            --font-display: 'Outfit', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-display);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ---- Noise overlay ---- */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ---- Layout ---- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section { padding: 100px 0; }
+
+        /* ---- Navigation ---- */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            background: rgba(8, 8, 10, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        nav.scrolled { border-bottom-color: var(--border); }
+
+        nav .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-logo span { color: var(--accent); }
+
+        .nav-links { display: flex; gap: 32px; align-items: center; }
+
+        .nav-links a {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-dim);
+            text-decoration: none;
+            letter-spacing: 0.02em;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { color: var(--text); }
+
+        .nav-gh {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border: 1px solid var(--border-bright);
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-dim) !important;
+            transition: all 0.2s;
+        }
+
+        .nav-gh:hover {
+            border-color: var(--accent);
+            color: var(--accent) !important;
+        }
+
+        .nav-gh svg { width: 16px; height: 16px; fill: currentColor; }
+
+        /* ---- Hero ---- */
+        .hero {
+            padding-top: 160px;
+            padding-bottom: 80px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.04em;
+            margin-bottom: 32px;
+            animation: fadeUp 0.6s ease both;
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 2s ease infinite;
+        }
+
+        h1 {
+            font-size: clamp(40px, 6vw, 72px);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            margin-bottom: 20px;
+            animation: fadeUp 0.6s ease 0.1s both;
+        }
+
+        h1 .accent { color: var(--accent); }
+
+        .hero-sub {
+            font-size: clamp(16px, 2vw, 19px);
+            font-weight: 300;
+            color: var(--text-dim);
+            max-width: 560px;
+            margin: 0 auto 40px;
+            line-height: 1.6;
+            animation: fadeUp 0.6s ease 0.2s both;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 64px;
+            animation: fadeUp 0.6s ease 0.3s both;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.25s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+        .btn-primary:hover {
+            background: #e0b060;
+            box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-bright);
+            color: var(--text-dim);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-dim);
+            color: var(--text);
+        }
+
+        /* ---- Screenshot ---- */
+        .hero-image-wrap {
+            position: relative;
+            max-width: 960px;
+            margin: 0 auto;
+            animation: fadeUp 0.8s ease 0.4s both;
+        }
+
+        .hero-image-wrap::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 13px;
+            background: linear-gradient(135deg, var(--border-bright) 0%, transparent 50%, var(--border) 100%);
+            z-index: 0;
+        }
+
+        .hero-image-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 40px;
+            background: var(--accent);
+            filter: blur(100px);
+            opacity: 0.06;
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .hero-image-wrap img {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            border-radius: 12px;
+            display: block;
+        }
+
+        /* ---- Tech badges below screenshot ---- */
+        .tech-row {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+            animation: fadeUp 0.6s ease 0.5s both;
+        }
+
+        .tech-tag {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+            padding: 5px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            letter-spacing: 0.04em;
+        }
+
+        /* ---- Problem section ---- */
+        .problem {
+            border-top: 1px solid var(--border);
+        }
+
+        .problem-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 80px;
+            align-items: center;
+        }
+
+        .problem-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .problem h2 {
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            margin-bottom: 20px;
+        }
+
+        .problem p {
+            font-size: 15px;
+            color: var(--text-dim);
+            line-height: 1.7;
+        }
+
+        .terminal-mockup {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .terminal-mockup-bar {
+            display: flex;
+            gap: 6px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .terminal-mockup-bar span {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .terminal-mockup-bar span:nth-child(1) { background: #ff5f57; }
+        .terminal-mockup-bar span:nth-child(2) { background: #ffbd2e; }
+        .terminal-mockup-bar span:nth-child(3) { background: #28c840; }
+
+        .terminal-mockup-body {
+            padding: 16px;
+            line-height: 1.8;
+            color: var(--text-dim);
+        }
+
+        .terminal-mockup-body .prompt { color: var(--green); }
+        .terminal-mockup-body .cmd { color: var(--text); }
+        .terminal-mockup-body .warn { color: var(--accent); }
+        .terminal-mockup-body .err { color: var(--red); }
+        .terminal-mockup-body .dim { color: var(--text-muted); }
+
+        /* ---- Features ---- */
+        .features {
+            border-top: 1px solid var(--border);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: 36px;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .feature-card {
+            background: var(--surface);
+            padding: 36px 32px;
+            transition: background 0.3s;
+        }
+
+        .feature-card:hover { background: var(--surface-2); }
+
+        .feature-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+        }
+
+        .feature-card h3 {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* ---- Shortcuts ---- */
+        .shortcuts {
+            border-top: 1px solid var(--border);
+        }
+
+        .shortcuts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: start;
+        }
+
+        .shortcuts h2 {
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+        }
+
+        .shortcuts-intro {
+            font-size: 15px;
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        .shortcut-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .shortcut-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--surface);
+            transition: background 0.2s;
+        }
+
+        .shortcut-row:hover { background: var(--surface-2); }
+
+        .shortcut-action {
+            font-size: 13px;
+            color: var(--text-dim);
+        }
+
+        .shortcut-keys {
+            display: flex;
+            gap: 4px;
+        }
+
+        kbd {
+            display: inline-block;
+            padding: 3px 8px;
+            background: var(--bg);
+            border: 1px solid var(--border-bright);
+            border-radius: 5px;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        /* ---- Install ---- */
+        .install {
+            border-top: 1px solid var(--border);
+        }
+
+        .install-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 56px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .install-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 200px;
+            background: radial-gradient(ellipse, var(--accent-glow), transparent 70%);
+            pointer-events: none;
+        }
+
+        .install-card h2 {
+            font-size: 28px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .install-card > p {
+            color: var(--text-dim);
+            font-size: 15px;
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .install-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-width: 520px;
+            margin: 0 auto;
+            text-align: left;
+            position: relative;
+        }
+
+        .code-block {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .code-block:hover { border-color: var(--border-bright); }
+
+        .code-block .prompt-char {
+            color: var(--accent);
+            margin-right: 10px;
+            user-select: none;
+        }
+
+        .code-block code { flex: 1; color: var(--text); }
+
+        .code-block .copy-hint {
+            font-size: 10px;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            user-select: none;
+        }
+
+        /* ---- Footer ---- */
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        footer .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        footer p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        footer a {
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover { color: var(--accent); }
+
+        .footer-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ---- Animations ---- */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 768px) {
+            section { padding: 64px 0; }
+
+            .problem-grid,
+            .shortcuts-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .install-card { padding: 36px 24px; }
+
+            .nav-links a:not(.nav-gh) { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav id="nav">
+    <div class="container">
+        <a href="#" class="nav-logo">Hive<span>Term</span></a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#shortcuts">Shortcuts</a>
+            <a href="#install">Install</a>
+            <a href="https://github.com/trsdn/agent_terminal" class="nav-gh" target="_blank" rel="noopener">
+                <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                Source
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-badge">
+            <span class="dot"></span>
+            macOS 14+ &middot; Swift &middot; MIT License
+        </div>
+
+        <h1>One terminal.<br><span class="accent">Every agent.</span></h1>
+
+        <p class="hero-sub">
+            Run Claude Code, Copilot CLI, and other AI agents side-by-side &mdash; with instant switching, input detection, and zero Electron overhead.
+        </p>
+
+        <div class="hero-actions">
+            <a href="https://github.com/trsdn/agent_terminal" class="btn btn-primary" target="_blank" rel="noopener">
+                View on GitHub
+            </a>
+            <a href="#install" class="btn btn-secondary">
+                Quick Start
+            </a>
+        </div>
+
+        <div class="hero-image-wrap">
+            <img src="../screenshots/grid-2x2.png" alt="HiveTerm showing three terminal sessions in a grid layout — dev build output, server logs, and monitoring — all visible at once" width="960" height="540" loading="eager">
+        </div>
+
+        <div class="tech-row">
+            <span class="tech-tag">Swift 5.9</span>
+            <span class="tech-tag">SwiftUI</span>
+            <span class="tech-tag">AppKit</span>
+            <span class="tech-tag">SwiftTerm</span>
+            <span class="tech-tag">PTY</span>
+        </div>
+    </div>
+</section>
+
+<!-- Problem -->
+<section class="problem reveal">
+    <div class="container">
+        <div class="problem-grid">
+            <div>
+                <div class="problem-label">The Problem</div>
+                <h2>12 tabs. 4 agents.<br>Zero overview.</h2>
+                <p>
+                    You're running Claude Code agents across different repos. One is waiting for a sudo password. Another finished and needs review. You're Cmd+Tab-ing between windows trying to figure out which agent needs attention.
+                </p>
+                <br>
+                <p>
+                    <strong style="color: var(--text)">HiveTerm fixes this.</strong> Every session shows its status at a glance. Sessions waiting for input get highlighted. Group related sessions into a grid and see them all at once.
+                </p>
+            </div>
+            <div class="terminal-mockup">
+                <div class="terminal-mockup-bar">
+                    <span></span><span></span><span></span>
+                </div>
+                <div class="terminal-mockup-body">
+                    <div><span class="prompt">~</span> <span class="cmd">claude-code --project api</span></div>
+                    <div class="dim">Working on refactoring auth...</div>
+                    <div><br></div>
+                    <div><span class="prompt">~</span> <span class="cmd">claude-code --project web</span></div>
+                    <div class="warn">? sudo password required</div>
+                    <div class="err">&nbsp; ↑ waiting for input</div>
+                    <div><br></div>
+                    <div><span class="prompt">~</span> <span class="cmd">claude-code --project docs</span></div>
+                    <div class="dim">Done. Review changes?</div>
+                    <div class="dim">&nbsp; ...hidden in tab 7 of 12</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features -->
+<section class="features reveal" id="features">
+    <div class="container">
+        <div class="section-header">
+            <div class="section-label">Features</div>
+            <h2>Built for multi-agent workflows</h2>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">&#9638;</div>
+                <h3>Grid Layout</h3>
+                <p>Side-by-side or 2&times;2 grid. Each group gets its own layout. Ungrouped sessions display fullscreen.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9673;</div>
+                <h3>Input Detection</h3>
+                <p>Automatically detects password prompts, confirmations, and interactive commands. Highlights waiting sessions.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9889;</div>
+                <h3>Instant Switching</h3>
+                <p>All terminals stay alive in a single AppKit container. Switching toggles visibility &mdash; no teardown, no lag.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9881;</div>
+                <h3>Native Performance</h3>
+                <p>Built with Swift, SwiftUI, and AppKit. Full PTY support via SwiftTerm. No web views, no Electron.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#10070;</div>
+                <h3>Session Grouping</h3>
+                <p>Drag sessions together to create groups. Reorder via context menu or drag &amp; drop.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">&#9775;</div>
+                <h3>Theme Support</h3>
+                <p>5 built-in themes with live switching. Import your favorite iTerm2 color schemes.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Shortcuts -->
+<section class="shortcuts reveal" id="shortcuts">
+    <div class="container">
+        <div class="shortcuts-grid">
+            <div>
+                <div class="section-label">Keyboard-first</div>
+                <h2>No mouse required</h2>
+                <p class="shortcuts-intro">
+                    Every action has a shortcut. Switch sessions by number, create new tabs, rename on the fly. Your hands never leave the keyboard.
+                </p>
+            </div>
+
+            <div class="shortcut-list">
+                <div class="shortcut-row">
+                    <span class="shortcut-action">New session</span>
+                    <div class="shortcut-keys"><kbd>&#8984;</kbd><kbd>T</kbd></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-action">Close session</span>
+                    <div class="shortcut-keys"><kbd>&#8984;</kbd><kbd>W</kbd></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-action">Switch to session 1&ndash;9</span>
+                    <div class="shortcut-keys"><kbd>&#8984;</kbd><kbd>1</kbd> &ndash; <kbd>9</kbd></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-action">Rename session</span>
+                    <div class="shortcut-keys"><kbd>&#8984;</kbd><kbd>R</kbd></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-action">Increase font</span>
+                    <div class="shortcut-keys"><kbd>&#8984;</kbd><kbd>+</kbd></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-action">Decrease font</span>
+                    <div class="shortcut-keys"><kbd>&#8984;</kbd><kbd>&minus;</kbd></div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-action">Debug overlay</span>
+                    <div class="shortcut-keys"><kbd>&#8984;</kbd><kbd>&#8679;</kbd><kbd>D</kbd></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Install -->
+<section class="install reveal" id="install">
+    <div class="container">
+        <div class="install-card">
+            <div class="section-label">Get Started</div>
+            <h2>Clone. Build. Run.</h2>
+            <p>Requires Xcode 15+ and macOS 14 Sonoma.</p>
+
+            <div class="install-steps">
+                <div class="code-block" onclick="copyCode(this)">
+                    <span class="prompt-char">$</span>
+                    <code>git clone https://github.com/trsdn/agent_terminal.git</code>
+                    <span class="copy-hint">COPY</span>
+                </div>
+                <div class="code-block" onclick="copyCode(this)">
+                    <span class="prompt-char">$</span>
+                    <code>cd agent_terminal && open HiveTerm.xcodeproj</code>
+                    <span class="copy-hint">COPY</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="container">
+        <p>HiveTerm &middot; MIT License</p>
+        <div class="footer-links">
+            <a href="https://github.com/trsdn/agent_terminal" target="_blank" rel="noopener">GitHub</a>
+            <a href="https://github.com/trsdn/agent_terminal/issues" target="_blank" rel="noopener">Issues</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Navbar scroll effect
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+        nav.classList.toggle('scrolled', window.scrollY > 20);
+    });
+
+    // Reveal on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                observer.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.15 });
+    reveals.forEach(el => observer.observe(el));
+
+    // Copy code blocks
+    function copyCode(el) {
+        const code = el.querySelector('code').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            const hint = el.querySelector('.copy-hint');
+            hint.textContent = 'COPIED';
+            hint.style.color = 'var(--accent)';
+            setTimeout(() => {
+                hint.textContent = 'COPY';
+                hint.style.color = '';
+            }, 1500);
+        });
+    }
+</script>
+
+</body>
+</html>

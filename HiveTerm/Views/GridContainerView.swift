@@ -10,7 +10,9 @@ struct GridContainerView: View {
             visibleSessions: store.visibleSessions,
             selectedId: store.selectedSessionId,
             layout: store.currentLayout,
-            theme: themeManager.currentTheme
+            theme: themeManager.currentTheme,
+            fontSize: store.fontSize,
+            onSelectSession: { id in store.selectSession(id) }
         )
         .background(Color(nsColor: themeManager.currentTheme.effectiveGridBackground))
     }

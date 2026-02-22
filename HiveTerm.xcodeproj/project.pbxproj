@@ -1,0 +1,574 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0E16D04EF34793D717C364C1 /* HiveTermTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 951DD3F63F47936AC5AB2EE4 /* HiveTermTests.swift */; };
+		23533DAE356E3AF435A7E6F1 /* SwiftTerm in Frameworks */ = {isa = PBXBuildFile; productRef = CBAC5418B93E72DCE3857987 /* SwiftTerm */; };
+		2802DFEC8471AB3AA94229C6 /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AECDA279A029F8CDD80DC419 /* ThemeManager.swift */; };
+		32A25D0A40DF472AA9FD4D60 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CA88903614934ED5F93DB61 /* SessionStore.swift */; };
+		5F5CF904AA42F33EADE6935D /* AppIconSimple.svg in Resources */ = {isa = PBXBuildFile; fileRef = 5D885E6532AF1CE062627C1C /* AppIconSimple.svg */; };
+		6F19D1F9838E6D88A2C30737 /* TerminalTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = F18538D679671A90450CA038 /* TerminalTheme.swift */; };
+		7C9BEBA3682256F1F0A9CA7A /* TerminalSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC62716049EA47DE3A6E1C94 /* TerminalSession.swift */; };
+		8130DEA7047B62F381CEEE0F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = ADF5917338B75FFE1906E8A2 /* Assets.xcassets */; };
+		964A4FAAB2A5FC941968CE1A /* SidebarTabRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6BC97A20A24599B6ADF94899 /* SidebarTabRow.swift */; };
+		970758DAE24A61859173089D /* InputDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC88F2166DF92C906CDB5962 /* InputDetector.swift */; };
+		9FCBED262D502973C1B82198 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D9A0B420A0C837F3E2908E0 /* SidebarView.swift */; };
+		AFCCC7003843A30FAB861FCC /* GridContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018CC28FF349130BBC3CCD65 /* GridContainerView.swift */; };
+		B3DCEBFF2DE7053BC47A85D8 /* TerminalPaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6649F1FE2062BB04DDCAD9 /* TerminalPaneView.swift */; };
+		B583C8AFFC9B0AA89039BF3E /* KeyBindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CEC686281089711DB7E06EE /* KeyBindings.swift */; };
+		B8F5A346E44E72F7AF65B601 /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 76AF8D091A8C2D9240C4D391 /* AppIcon.svg */; };
+		E43B6CC7BC6EF43345FE2EB2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE3398E1FD81472B02830FA /* ContentView.swift */; };
+		E58CF118C3E4BF7918600002 /* ThemePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8710D6107817D480B79B0151 /* ThemePickerView.swift */; };
+		E992931BB665ACABD809ED2F /* HiveTermApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C0F3C0AAA3D48B7211B02E3 /* HiveTermApp.swift */; };
+		F949AECCBE075A314BAE7855 /* ITermColorsParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395AFAF07C6570726817289A /* ITermColorsParser.swift */; };
+		FD203B9C03CBC9B3BC1A4215 /* SessionGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD801BAFFB3B6F4BB6359827 /* SessionGroup.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		667176F12D29C0382CD57DD4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6BA507E50771064137DAC515 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 74996D4BD32DFEDC60EAD8D4;
+			remoteInfo = HiveTerm;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		018CC28FF349130BBC3CCD65 /* GridContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridContainerView.swift; sourceTree = "<group>"; };
+		1E98A03AAFEAA7D8E189A4CB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		2A6649F1FE2062BB04DDCAD9 /* TerminalPaneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalPaneView.swift; sourceTree = "<group>"; };
+		2CA88903614934ED5F93DB61 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		395AFAF07C6570726817289A /* ITermColorsParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ITermColorsParser.swift; sourceTree = "<group>"; };
+		4D9A0B420A0C837F3E2908E0 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		5D885E6532AF1CE062627C1C /* AppIconSimple.svg */ = {isa = PBXFileReference; path = AppIconSimple.svg; sourceTree = "<group>"; };
+		68535E58AF8B96AB4F37150A /* HiveTerm.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HiveTerm.entitlements; sourceTree = "<group>"; };
+		6BC97A20A24599B6ADF94899 /* SidebarTabRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarTabRow.swift; sourceTree = "<group>"; };
+		6CEC686281089711DB7E06EE /* KeyBindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyBindings.swift; sourceTree = "<group>"; };
+		76AF8D091A8C2D9240C4D391 /* AppIcon.svg */ = {isa = PBXFileReference; path = AppIcon.svg; sourceTree = "<group>"; };
+		8710D6107817D480B79B0151 /* ThemePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemePickerView.swift; sourceTree = "<group>"; };
+		8C0F3C0AAA3D48B7211B02E3 /* HiveTermApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveTermApp.swift; sourceTree = "<group>"; };
+		951DD3F63F47936AC5AB2EE4 /* HiveTermTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveTermTests.swift; sourceTree = "<group>"; };
+		ABE3398E1FD81472B02830FA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		AC62716049EA47DE3A6E1C94 /* TerminalSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalSession.swift; sourceTree = "<group>"; };
+		AD801BAFFB3B6F4BB6359827 /* SessionGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionGroup.swift; sourceTree = "<group>"; };
+		ADF5917338B75FFE1906E8A2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AECDA279A029F8CDD80DC419 /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
+		BC88F2166DF92C906CDB5962 /* InputDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputDetector.swift; sourceTree = "<group>"; };
+		C358AE747E15CC8E20CF6980 /* HiveTermTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HiveTermTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB9282B0B49DECEAEDCDDD24 /* HiveTerm.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HiveTerm.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F18538D679671A90450CA038 /* TerminalTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalTheme.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		29D35C523DC57E1D54F64CBF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				23533DAE356E3AF435A7E6F1 /* SwiftTerm in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		03BE4A352BCFD9F4FCD80BA7 /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				395AFAF07C6570726817289A /* ITermColorsParser.swift */,
+				F18538D679671A90450CA038 /* TerminalTheme.swift */,
+				AECDA279A029F8CDD80DC419 /* ThemeManager.swift */,
+				8710D6107817D480B79B0151 /* ThemePickerView.swift */,
+			);
+			path = Theme;
+			sourceTree = "<group>";
+		};
+		09C51F5AC30EF69EDBB993E0 /* HiveTerm */ = {
+			isa = PBXGroup;
+			children = (
+				68535E58AF8B96AB4F37150A /* HiveTerm.entitlements */,
+				1E98A03AAFEAA7D8E189A4CB /* Info.plist */,
+				63384556456DE13410D50B8C /* App */,
+				E3D234808E56A09BC0990AA8 /* Models */,
+				AA4B1298A4F08A2489C9F8DA /* Resources */,
+				C9135CDF12DA809DB2185B10 /* Services */,
+				03BE4A352BCFD9F4FCD80BA7 /* Theme */,
+				7D31423A3833BB0ADBBCECCA /* Utilities */,
+				D790C7987DD447EE26F5E3D9 /* Views */,
+			);
+			path = HiveTerm;
+			sourceTree = "<group>";
+		};
+		27CB0544DC2B801573C35968 /* HiveTermTests */ = {
+			isa = PBXGroup;
+			children = (
+				951DD3F63F47936AC5AB2EE4 /* HiveTermTests.swift */,
+			);
+			path = HiveTermTests;
+			sourceTree = "<group>";
+		};
+		300ECAD415A56E8ED5E5D052 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB9282B0B49DECEAEDCDDD24 /* HiveTerm.app */,
+				C358AE747E15CC8E20CF6980 /* HiveTermTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		63384556456DE13410D50B8C /* App */ = {
+			isa = PBXGroup;
+			children = (
+				8C0F3C0AAA3D48B7211B02E3 /* HiveTermApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		7D31423A3833BB0ADBBCECCA /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				6CEC686281089711DB7E06EE /* KeyBindings.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		AA4B1298A4F08A2489C9F8DA /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				76AF8D091A8C2D9240C4D391 /* AppIcon.svg */,
+				5D885E6532AF1CE062627C1C /* AppIconSimple.svg */,
+				ADF5917338B75FFE1906E8A2 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		C9135CDF12DA809DB2185B10 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				BC88F2166DF92C906CDB5962 /* InputDetector.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		D790C7987DD447EE26F5E3D9 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				ABE3398E1FD81472B02830FA /* ContentView.swift */,
+				018CC28FF349130BBC3CCD65 /* GridContainerView.swift */,
+				6BC97A20A24599B6ADF94899 /* SidebarTabRow.swift */,
+				4D9A0B420A0C837F3E2908E0 /* SidebarView.swift */,
+				2A6649F1FE2062BB04DDCAD9 /* TerminalPaneView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		E3D234808E56A09BC0990AA8 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AD801BAFFB3B6F4BB6359827 /* SessionGroup.swift */,
+				2CA88903614934ED5F93DB61 /* SessionStore.swift */,
+				AC62716049EA47DE3A6E1C94 /* TerminalSession.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		F2AA01D76E030E3AD21FE131 = {
+			isa = PBXGroup;
+			children = (
+				09C51F5AC30EF69EDBB993E0 /* HiveTerm */,
+				27CB0544DC2B801573C35968 /* HiveTermTests */,
+				300ECAD415A56E8ED5E5D052 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		22FD4FDDD921753E76583EF6 /* HiveTermTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9687969D9EB3C1D97CD33D30 /* Build configuration list for PBXNativeTarget "HiveTermTests" */;
+			buildPhases = (
+				CD79F8643499B94BCBB6EB71 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9082BC8101E384431DD3F90C /* PBXTargetDependency */,
+			);
+			name = HiveTermTests;
+			packageProductDependencies = (
+			);
+			productName = HiveTermTests;
+			productReference = C358AE747E15CC8E20CF6980 /* HiveTermTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		74996D4BD32DFEDC60EAD8D4 /* HiveTerm */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8AF28202625C933E17E5BB14 /* Build configuration list for PBXNativeTarget "HiveTerm" */;
+			buildPhases = (
+				EDDDEF17B3BB2F622F2A394E /* Sources */,
+				FB1E738B29C1C3547B88C7D4 /* Resources */,
+				29D35C523DC57E1D54F64CBF /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HiveTerm;
+			packageProductDependencies = (
+				CBAC5418B93E72DCE3857987 /* SwiftTerm */,
+			);
+			productName = HiveTerm;
+			productReference = DB9282B0B49DECEAEDCDDD24 /* HiveTerm.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		6BA507E50771064137DAC515 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					74996D4BD32DFEDC60EAD8D4 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Manual;
+					};
+				};
+			};
+			buildConfigurationList = E487C625BA5C8A6C82AB2FAF /* Build configuration list for PBXProject "HiveTerm" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = F2AA01D76E030E3AD21FE131;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1C518BF43155512E3F116BC5 /* XCRemoteSwiftPackageReference "SwiftTerm" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				74996D4BD32DFEDC60EAD8D4 /* HiveTerm */,
+				22FD4FDDD921753E76583EF6 /* HiveTermTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FB1E738B29C1C3547B88C7D4 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B8F5A346E44E72F7AF65B601 /* AppIcon.svg in Resources */,
+				5F5CF904AA42F33EADE6935D /* AppIconSimple.svg in Resources */,
+				8130DEA7047B62F381CEEE0F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CD79F8643499B94BCBB6EB71 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E16D04EF34793D717C364C1 /* HiveTermTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		EDDDEF17B3BB2F622F2A394E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E43B6CC7BC6EF43345FE2EB2 /* ContentView.swift in Sources */,
+				AFCCC7003843A30FAB861FCC /* GridContainerView.swift in Sources */,
+				E992931BB665ACABD809ED2F /* HiveTermApp.swift in Sources */,
+				F949AECCBE075A314BAE7855 /* ITermColorsParser.swift in Sources */,
+				970758DAE24A61859173089D /* InputDetector.swift in Sources */,
+				B583C8AFFC9B0AA89039BF3E /* KeyBindings.swift in Sources */,
+				FD203B9C03CBC9B3BC1A4215 /* SessionGroup.swift in Sources */,
+				32A25D0A40DF472AA9FD4D60 /* SessionStore.swift in Sources */,
+				964A4FAAB2A5FC941968CE1A /* SidebarTabRow.swift in Sources */,
+				9FCBED262D502973C1B82198 /* SidebarView.swift in Sources */,
+				B3DCEBFF2DE7053BC47A85D8 /* TerminalPaneView.swift in Sources */,
+				7C9BEBA3682256F1F0A9CA7A /* TerminalSession.swift in Sources */,
+				6F19D1F9838E6D88A2C30737 /* TerminalTheme.swift in Sources */,
+				2802DFEC8471AB3AA94229C6 /* ThemeManager.swift in Sources */,
+				E58CF118C3E4BF7918600002 /* ThemePickerView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9082BC8101E384431DD3F90C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 74996D4BD32DFEDC60EAD8D4 /* HiveTerm */;
+			targetProxy = 667176F12D29C0382CD57DD4 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		036AAA674C2769A2B652B78D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		8AFAF7E50AA28711B3426F46 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = HiveTerm/HiveTerm.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				INFOPLIST_FILE = HiveTerm/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hiveterm.HiveTerm;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5;
+			};
+			name = Debug;
+		};
+		B24BC7EE43511F0D97801AC9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		C52B923CF70DF2C1FCF250BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = HiveTerm/HiveTerm.entitlements;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = NO;
+				INFOPLIST_FILE = HiveTerm/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.hiveterm.HiveTerm;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5;
+			};
+			name = Release;
+		};
+		D283AE97D500C7609C1EAB8B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hiveterm.HiveTermTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HiveTerm.app/Contents/MacOS/HiveTerm";
+			};
+			name = Release;
+		};
+		D5285CD8E7439DD81A5E0497 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.hiveterm.HiveTermTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HiveTerm.app/Contents/MacOS/HiveTerm";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		8AF28202625C933E17E5BB14 /* Build configuration list for PBXNativeTarget "HiveTerm" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				8AFAF7E50AA28711B3426F46 /* Debug */,
+				C52B923CF70DF2C1FCF250BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9687969D9EB3C1D97CD33D30 /* Build configuration list for PBXNativeTarget "HiveTermTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D5285CD8E7439DD81A5E0497 /* Debug */,
+				D283AE97D500C7609C1EAB8B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E487C625BA5C8A6C82AB2FAF /* Build configuration list for PBXProject "HiveTerm" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				036AAA674C2769A2B652B78D /* Debug */,
+				B24BC7EE43511F0D97801AC9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1C518BF43155512E3F116BC5 /* XCRemoteSwiftPackageReference "SwiftTerm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/migueldeicaza/SwiftTerm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.11.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CBAC5418B93E72DCE3857987 /* SwiftTerm */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1C518BF43155512E3F116BC5 /* XCRemoteSwiftPackageReference "SwiftTerm" */;
+			productName = SwiftTerm;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 6BA507E50771064137DAC515 /* Project object */;
+}

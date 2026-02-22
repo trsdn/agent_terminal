@@ -80,6 +80,24 @@ struct HiveTermApp: App {
                     }
                 }
 
+                // Font Size
+                Menu("Font Size") {
+                    Button("Increase") {
+                        store.fontSize = min(store.fontSize + 1, 24)
+                    }
+                    .keyboardShortcut("+", modifiers: .command)
+
+                    Button("Decrease") {
+                        store.fontSize = max(store.fontSize - 1, 10)
+                    }
+                    .keyboardShortcut("-", modifiers: .command)
+
+                    Button("Reset") {
+                        store.fontSize = 13
+                    }
+                    .keyboardShortcut("0", modifiers: .command)
+                }
+
                 // Theme
                 Menu("Theme") {
                     ForEach(themeManager.availableThemes) { theme in

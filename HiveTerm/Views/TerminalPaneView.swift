@@ -7,6 +7,7 @@ import SwiftTerm
 class TerminalHostView: NSView {
     override var isFlipped: Bool { true }
 
+    var onSelectSession: ((UUID) -> Void)?
     private var infos: [UUID: TerminalInfo] = [:]
     private var pendingStarts: [(LocalProcessTerminalView, TerminalSession)] = []
     private var currentVisible: [TerminalSession] = []
@@ -14,24 +15,32 @@ class TerminalHostView: NSView {
     private var currentSelectedId: UUID?
     private var currentThemeId: String?
     private var currentTheme: TerminalTheme?
-    private let gap: CGFloat = 1
-    private let padding: CGFloat = 6
+    private var currentFontSize: CGFloat = 13
+    private let gap: CGFloat = 4
+    private let paddingH: CGFloat = 10
+    private let paddingTop: CGFloat = 0
+    private let paddingBottom: CGFloat = 8
+
+    private let borderInset: CGFloat = 8
 
     struct TerminalInfo {
+        let containerView: NSView
         let terminalView: LocalProcessTerminalView
         let coordinator: TerminalCoordinator
         let monitor: TerminalOutputMonitor
     }
 
     // Called by NSViewRepresentable.updateNSView
-    func update(sessions: [TerminalSession], visible: [TerminalSession], selectedId: UUID?, layout: LayoutMode, theme: TerminalTheme) {
+    func update(sessions: [TerminalSession], visible: [TerminalSession], selectedId: UUID?, layout: LayoutMode, theme: TerminalTheme, fontSize: CGFloat) {
         let selectionChanged = selectedId != currentSelectedId
         let themeChanged = theme.id != currentThemeId
+        let fontSizeChanged = fontSize != currentFontSize
         currentVisible = visible
         currentLayout = layout
         currentSelectedId = selectedId
         currentThemeId = theme.id
         currentTheme = theme
+        currentFontSize = fontSize
 
         // Ensure terminals exist
         for session in sessions {
@@ -41,7 +50,7 @@ class TerminalHostView: NSView {
         // Remove deleted sessions
         let activeIds = Set(sessions.map(\.id))
         for id in infos.keys where !activeIds.contains(id) {
-            infos[id]?.terminalView.removeFromSuperview()
+            infos[id]?.containerView.removeFromSuperview()
             infos.removeValue(forKey: id)
         }
 
@@ -52,14 +61,23 @@ class TerminalHostView: NSView {
             }
         }
 
+        // Apply font size change to all terminals
+        if fontSizeChanged {
+            let font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+            for (_, info) in infos {
+                info.terminalView.font = font
+            }
+        }
+
         // Toggle visibility
         let visibleIds = Set(visible.map(\.id))
         for (id, info) in infos {
-            info.terminalView.isHidden = !visibleIds.contains(id)
+            info.containerView.isHidden = !visibleIds.contains(id)
         }
 
-        // Layout + focus + start pending processes
+        // Layout + focus borders + start pending processes
         layoutTerminals()
+        updateBorders()
         startPendingProcesses(theme: theme)
         if selectionChanged {
             focusSelected()
@@ -84,7 +102,7 @@ class TerminalHostView: NSView {
         guard infos[session.id] == nil else { return }
 
         let tv = LocalProcessTerminalView(frame: bounds)
-        tv.font = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+        tv.font = NSFont.monospacedSystemFont(ofSize: currentFontSize, weight: .regular)
         tv.nativeBackgroundColor = theme.background.nsColor
         tv.nativeForegroundColor = theme.foreground.nsColor
         tv.caretColor = theme.cursor.nsColor
@@ -100,12 +118,27 @@ class TerminalHostView: NSView {
         let click = NSClickGestureRecognizer(target: self, action: #selector(terminalClicked(_:)))
         tv.addGestureRecognizer(click)
 
-        addSubview(tv)
-        tv.isHidden = true
+        // Wrap terminal in a container for border + inset
+        let container = NSView(frame: bounds)
+        container.wantsLayer = true
+        container.layer?.cornerRadius = 4
+        container.layer?.masksToBounds = true
+        container.addSubview(tv)
+        addSubview(container)
+        container.isHidden = true
+
+        // Hide SwiftTerm's built-in legacy scroller (it's a direct subview)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            for subview in tv.subviews {
+                if let scroller = subview as? NSScroller {
+                    scroller.isHidden = true
+                }
+            }
+        }
 
         session.terminalView = tv
 
-        infos[session.id] = TerminalInfo(terminalView: tv, coordinator: coord, monitor: monitor)
+        infos[session.id] = TerminalInfo(containerView: container, terminalView: tv, coordinator: coord, monitor: monitor)
 
         // Defer process start until after layout so terminal has correct size
         pendingStarts.append((tv, session))
@@ -138,15 +171,38 @@ class TerminalHostView: NSView {
 
     @objc private func terminalClicked(_ gesture: NSClickGestureRecognizer) {
         guard let view = gesture.view else { return }
-        window?.makeFirstResponder(view)
+        // Update selected session in store so border follows click
+        if let id = infos.first(where: { $0.value.terminalView === view })?.key {
+            window?.makeFirstResponder(view)
+            currentSelectedId = id
+            updateBorders()
+            onSelectSession?(id)
+        }
     }
 
     private func focusSelected() {
-        guard let id = currentSelectedId, let info = infos[id], !info.terminalView.isHidden else { return }
+        guard let id = currentSelectedId, let info = infos[id], !info.containerView.isHidden else { return }
         DispatchQueue.main.async { [weak self] in
             guard let self, let window = self.window else { return }
             if window.firstResponder !== info.terminalView {
                 window.makeFirstResponder(info.terminalView)
+            }
+        }
+    }
+
+    // MARK: - Borders
+
+    private func updateBorders() {
+        let cursorColor = currentTheme?.cursor.nsColor ?? NSColor.white
+        let bgColor = currentTheme?.background.nsColor ?? NSColor.black
+        for (id, info) in infos {
+            info.containerView.layer?.backgroundColor = bgColor.cgColor
+            if id == currentSelectedId {
+                info.containerView.layer?.borderWidth = 2
+                info.containerView.layer?.borderColor = cursorColor.cgColor
+            } else {
+                info.containerView.layer?.borderWidth = 1
+                info.containerView.layer?.borderColor = NSColor.white.withAlphaComponent(0.15).cgColor
             }
         }
     }
@@ -163,13 +219,19 @@ class TerminalHostView: NSView {
         let size = bounds.size
         guard size.width > 0, size.height > 0 else { return }
 
-        let padded = CGSize(width: size.width - padding * 2, height: size.height - padding * 2)
+        let padded = CGSize(width: size.width - paddingH * 2, height: size.height - paddingTop - paddingBottom)
         for (index, session) in currentVisible.enumerated() {
             guard let info = infos[session.id] else { continue }
             var rect = rectForIndex(index, count: currentVisible.count, layout: currentLayout, in: padded)
-            rect.origin.x += padding
-            rect.origin.y += padding
-            info.terminalView.frame = rect
+            rect.origin.x += paddingH
+            rect.origin.y += paddingTop
+            info.containerView.frame = rect
+            // Inset terminal within container so text doesn't touch the border
+            info.terminalView.frame = CGRect(
+                x: borderInset, y: borderInset,
+                width: rect.width - borderInset * 2,
+                height: rect.height - borderInset * 2
+            )
         }
     }
 
@@ -281,12 +343,17 @@ struct TerminalHostRepresentable: NSViewRepresentable {
     let selectedId: UUID?
     let layout: LayoutMode
     let theme: TerminalTheme
+    let fontSize: CGFloat
+    var onSelectSession: ((UUID) -> Void)?
 
     func makeNSView(context: Context) -> TerminalHostView {
-        TerminalHostView(frame: .zero)
+        let view = TerminalHostView(frame: .zero)
+        view.onSelectSession = onSelectSession
+        return view
     }
 
     func updateNSView(_ nsView: TerminalHostView, context: Context) {
-        nsView.update(sessions: sessions, visible: visibleSessions, selectedId: selectedId, layout: layout, theme: theme)
+        nsView.onSelectSession = onSelectSession
+        nsView.update(sessions: sessions, visible: visibleSessions, selectedId: selectedId, layout: layout, theme: theme, fontSize: fontSize)
     }
 }

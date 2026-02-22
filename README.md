@@ -14,6 +14,10 @@ Run Claude Code, Copilot CLI, and other agents side-by-side — with instant swi
 
 ---
 
+![HiveTerm Grid View](screenshots/grid-2x2.png)
+
+---
+
 ## The Problem
 
 You're running 4 Claude Code agents across different repos. One is waiting for a `sudo` password. Another finished and needs review. Your terminal has 12 tabs and you're `Cmd+Tab`-ing between windows trying to figure out which agent needs attention.
