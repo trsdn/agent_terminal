@@ -1,57 +1,99 @@
+<div align="center">
+
 # AgentHive
 
-A native macOS terminal built for running multiple AI agent sessions in parallel.
+**A native macOS terminal for AI agent workflows.**
 
-![macOS 14+](https://img.shields.io/badge/macOS-14%2B-blue) ![Swift 5.9](https://img.shields.io/badge/Swift-5.9-orange)
+Run Claude Code, Copilot CLI, and other agents side-by-side — with instant switching, input detection, and zero electron overhead.
 
-## Why
+[![macOS 14+](https://img.shields.io/badge/macOS-14+-000?style=flat-square&logo=apple&logoColor=white)](https://www.apple.com/macos/)
+[![Swift 5.9](https://img.shields.io/badge/Swift-5.9-F05138?style=flat-square&logo=swift&logoColor=white)](https://swift.org)
+[![SwiftTerm](https://img.shields.io/badge/SwiftTerm-terminal_emulation-blue?style=flat-square)](https://github.com/migueldeicaza/SwiftTerm)
 
-Existing terminals aren't designed for AI agent workflows. When running Claude Code, Copilot CLI, or other agents in parallel, you need instant session switching, visual status indicators, and flexible grid layouts — without electron overhead.
+</div>
+
+---
+
+## The Problem
+
+You're running 4 Claude Code agents across different repos. One is waiting for a `sudo` password. Another finished and needs review. Your terminal has 12 tabs and you're `Cmd+Tab`-ing between windows trying to figure out which agent needs attention.
+
+**AgentHive fixes this.** Every session shows its status at a glance. Sessions waiting for input get highlighted. Group related sessions into a grid and see them all at once.
 
 ## Features
 
-- **SwiftTerm terminal emulation** — full PTY support, native performance
-- **Vertical sidebar** — session tabs with live status indicators (running/waiting/idle)
-- **Session grouping** — drag sessions together for side-by-side or 2x2 grid layouts
-- **Input detection** — highlights sessions waiting for user input (passwords, prompts)
-- **Instant switching** — all terminals stay alive in memory, no teardown on switch
-- **Keyboard shortcuts** — `Cmd+T` new tab, `Cmd+W` close, `Cmd+1-9` switch, `Cmd+R` rename
+**Multi-session grid layout** — Group sessions into side-by-side or 2x2 grids. Each group gets its own layout. Ungrouped sessions display fullscreen.
+
+**Input detection** — Automatically detects when a session is waiting for user input (password prompts, confirmation dialogs, interactive commands) and highlights it in the sidebar.
+
+**Instant switching** — All terminals stay alive in a single AppKit container. Switching sessions toggles `isHidden` — no view teardown, no lag.
+
+**Native performance** — Built with Swift, SwiftUI, and AppKit. Uses [SwiftTerm](https://github.com/migueldeicaza/SwiftTerm) for terminal emulation with full PTY support. No web views, no Electron.
+
+**Session grouping** — Drag sessions onto each other in the sidebar to create groups. Reorder within groups via context menu or drag & drop.
+
+## Keyboard Shortcuts
+
+| Action | Shortcut |
+|:---|:---|
+| New session | `Cmd + T` |
+| Close session | `Cmd + W` |
+| Switch to session 1–9 | `Cmd + 1` — `Cmd + 9` |
+| Rename session | `Cmd + R` |
+| Debug overlay | `Cmd + Shift + D` |
 
 ## Architecture
 
 ```
 AgentHive.app
-├── SwiftUI           — Sidebar, toolbar, preferences
-├── AppKit            — TerminalHostView (single container for all terminals)
-├── SwiftTerm (SPM)   — Terminal emulation engine
-└── PTY Manager       — Process spawning + input detection
+├── SwiftUI              Sidebar, toolbar, window chrome
+├── AppKit               TerminalHostView — single NSView managing all terminals
+├── SwiftTerm (SPM)      Terminal emulation, PTY I/O
+└── InputDetector        Pattern matching + process state analysis
 ```
 
-Session switching uses a single `NSView` container that shows/hides terminal subviews via `isHidden` — no SwiftUI view lifecycle overhead.
+The key architectural decision: a single `TerminalHostView` (NSView) owns all terminal views as subviews. SwiftUI controls state, but the terminal lifecycle is pure AppKit — no `NSViewRepresentable` teardown/rebuild on session switch.
 
-## Build
+```
+┌──────────┬──────────────────────────────────────┐
+│ Sidebar  │  TerminalHostView                    │
+│          │  ┌────────────┬─────────────────┐    │
+│ ● Claude │  │            │                 │    │
+│   Code   │  │  Session 1 │  Session 2      │    │
+│          │  │  (visible) │  (visible)      │    │
+│ ● Copilot│  ├────────────┴─────────────────┤    │
+│   CLI    │  │                              │    │
+│          │  │  Session 3 (visible)         │    │
+│ ○ Tests  │  │                              │    │
+│   idle   │  └──────────────────────────────┘    │
+├──────────┴──────────────────────────────────────┤
+│  3 sessions · 1 waiting                         │
+└─────────────────────────────────────────────────┘
+```
 
-Requires Xcode 15+ and macOS 14 (Sonoma).
+## Getting Started
+
+**Requirements:** Xcode 15+ · macOS 14 Sonoma
 
 ```bash
-# Open in Xcode
+git clone https://github.com/trsdn/agent_terminal.git
+cd agent_terminal
 open AgentHive.xcodeproj
-
-# Or build from CLI
-xcodebuild -scheme AgentHive -configuration Debug build
 ```
 
-## Usage
+Or build from the command line:
 
-| Action | Shortcut |
-|---|---|
-| New session | `Cmd+T` |
-| Close session | `Cmd+W` |
-| Switch to session N | `Cmd+1` — `Cmd+9` |
-| Rename session | `Cmd+R` or right-click → Rename |
-| Group sessions | Drag one session onto another in the sidebar |
-| Reorder in group | Right-click → Move Up/Down |
-| Debug overlay | `Cmd+Shift+D` |
+```bash
+xcodebuild -scheme AgentHive -configuration Release build
+```
+
+## Roadmap
+
+- [ ] Tab colors / custom labels per session
+- [ ] Ghostty/iTerm2 color scheme import
+- [ ] Split pane resizing via drag
+- [ ] Session persistence across app restarts
+- [ ] Notification when a waiting session gets input
 
 ## License
 
