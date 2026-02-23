@@ -80,26 +80,16 @@ The key architectural decision: a single `TerminalHostView` (NSView) owns all te
 **Requirements:** Xcode 15+ · macOS 14 Sonoma
 
 ```bash
-git clone https://github.com/trsdn/HiveTerm.git
-cd HiveTerm
-open HiveTerm.xcodeproj
-```
-
-Or build from the command line:
-
-```bash
+git clone https://github.com/trsdn/HiveTerm.git && cd HiveTerm
 xcodebuild -scheme HiveTerm -configuration Release build
+cp -R build/Release/HiveTerm.app /Applications/
 ```
 
-### Running locally (Gatekeeper)
-
-Since HiveTerm is not notarized, macOS Gatekeeper will block it on first launch. Remove the quarantine attribute to run it:
+Since HiveTerm is not notarized, remove the quarantine attribute before first launch:
 
 ```bash
-xattr -cr /path/to/HiveTerm.app
+xattr -cr /Applications/HiveTerm.app
 ```
-
-Then open the app normally.
 
 ## Roadmap
 
