@@ -580,6 +580,18 @@
             position: relative;
         }
 
+        .step-label {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 0.03em;
+            margin-top: 16px;
+            margin-bottom: 4px;
+            text-align: left;
+        }
+
+        .step-label:first-child { margin-top: 0; }
+
         .install-steps {
             display: flex;
             flex-direction: column;
@@ -888,14 +900,29 @@
             <p>Requires Xcode 15+ and macOS 14 Sonoma.</p>
 
             <div class="install-steps">
+                <div class="step-label">1. Clone &amp; build</div>
                 <div class="code-block" onclick="copyCode(this)">
                     <span class="prompt-char">$</span>
-                    <code>git clone https://github.com/trsdn/HiveTerm.git</code>
+                    <code>git clone https://github.com/trsdn/HiveTerm.git && cd HiveTerm</code>
                     <span class="copy-hint">COPY</span>
                 </div>
                 <div class="code-block" onclick="copyCode(this)">
                     <span class="prompt-char">$</span>
-                    <code>cd HiveTerm && open HiveTerm.xcodeproj</code>
+                    <code>xcodebuild -scheme HiveTerm -configuration Release build</code>
+                    <span class="copy-hint">COPY</span>
+                </div>
+
+                <div class="step-label">2. Copy to Applications</div>
+                <div class="code-block" onclick="copyCode(this)">
+                    <span class="prompt-char">$</span>
+                    <code>cp -R build/Release/HiveTerm.app /Applications/</code>
+                    <span class="copy-hint">COPY</span>
+                </div>
+
+                <div class="step-label">3. Bypass Gatekeeper <span style="color: var(--text-muted)">(not notarized)</span></div>
+                <div class="code-block" onclick="copyCode(this)">
+                    <span class="prompt-char">$</span>
+                    <code>xattr -cr /Applications/HiveTerm.app</code>
                     <span class="copy-hint">COPY</span>
                 </div>
             </div>
