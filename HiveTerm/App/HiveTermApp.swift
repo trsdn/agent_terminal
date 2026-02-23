@@ -16,6 +16,7 @@ struct HiveTermApp: App {
                 .frame(minWidth: 700, minHeight: 400)
                 .preferredColorScheme(.dark)
                 .onAppear {
+                    store.restoreIfAvailable()
                     if store.sessions.isEmpty {
                         store.createSession()
                     }
@@ -23,6 +24,9 @@ struct HiveTermApp: App {
                         inputDetector = InputDetector(store: store)
                         inputDetector?.start()
                     }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
+                    store.save()
                 }
                 .fileImporter(
                     isPresented: $showThemeImporter,

@@ -1,17 +1,18 @@
 import Foundation
-import AppKit
-import SwiftTerm
+import SwiftUI
 
 enum SessionStatus: String, CaseIterable {
     case running
     case waiting
     case idle
+    case error
 
-    var color: NSColor {
+    var color: SwiftUI.Color {
         switch self {
-        case .running: return .systemGreen
-        case .waiting: return .systemBlue
-        case .idle: return .systemGray
+        case .running: return .green
+        case .waiting: return .blue
+        case .idle: return .gray
+        case .error: return .red
         }
     }
 
@@ -20,6 +21,7 @@ enum SessionStatus: String, CaseIterable {
         case .running: return "running"
         case .waiting: return "waiting for input"
         case .idle: return "idle"
+        case .error: return "process exited"
         }
     }
 }
@@ -31,11 +33,9 @@ class TerminalSession: Identifiable {
     var status: SessionStatus
     var isRenaming: Bool
 
-    // Stored terminal view — persists across SwiftUI re-renders
-    var terminalView: LocalProcessTerminalView?
+    weak var process: (any TerminalProcess)?
     var lastOutputTime: Date?
 
-    // Track whether this session has ever been displayed (startProcess called)
     var isProcessStarted: Bool = false
 
     init(name: String = "Shell") {
@@ -47,6 +47,6 @@ class TerminalSession: Identifiable {
 
     var childPid: pid_t? {
         guard isProcessStarted else { return nil }
-        return terminalView?.process.shellPid
+        return process?.shellPid
     }
 }

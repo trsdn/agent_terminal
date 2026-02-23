@@ -7,7 +7,7 @@ struct SidebarTabRow: View {
     var body: some View {
         HStack(spacing: 6) {
             Circle()
-                .fill(Color(nsColor: session.status.color))
+                .fill(session.status.color)
                 .frame(width: 6, height: 6)
 
             if session.isRenaming {

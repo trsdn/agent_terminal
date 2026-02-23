@@ -55,18 +55,23 @@ class InputDetector {
     }
 
     private func detectStatus(for session: TerminalSession) -> SessionStatus {
-        guard session.isProcessStarted else { return .idle }
+        guard session.isProcessStarted else {
+            return session.status == .error ? .error : .idle
+        }
 
         // Check if process is alive using kill(0) — safe, no side effects
         if let pid = session.childPid, pid > 0 {
             if kill(pid, 0) != 0 {
-                return .idle
+                return session.status == .error ? .error : .idle
             }
         } else {
-            return .idle
+            return session.status == .error ? .error : .idle
         }
 
-        // If the session was flagged as waiting by the output monitor, keep it
+        // Preserve error and waiting states
+        if session.status == .error {
+            return .error
+        }
         if session.status == .waiting {
             return .waiting
         }

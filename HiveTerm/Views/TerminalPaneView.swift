@@ -136,7 +136,7 @@ class TerminalHostView: NSView {
             }
         }
 
-        session.terminalView = tv
+        session.process = tv
 
         infos[session.id] = TerminalInfo(containerView: container, terminalView: tv, coordinator: coord, monitor: monitor)
 
@@ -272,8 +272,13 @@ class TerminalCoordinator: NSObject, LocalProcessTerminalViewDelegate {
 
     func processTerminated(source: TerminalView, exitCode: Int32?) {
         DispatchQueue.main.async { [weak self] in
-            self?.session?.status = .idle
-            self?.session?.isProcessStarted = false
+            guard let session = self?.session else { return }
+            session.isProcessStarted = false
+            if let code = exitCode, code != 0 {
+                session.status = .error
+            } else {
+                session.status = .idle
+            }
         }
     }
 
@@ -321,6 +326,14 @@ class TerminalOutputMonitor: NSObject, TerminalViewDelegate {
         DispatchQueue.main.async { [weak self] in
             self?.session?.status = .running
         }
+    }
+}
+
+// MARK: - TerminalProcess Conformance
+
+extension LocalProcessTerminalView: TerminalProcess {
+    var shellPid: pid_t? {
+        return process.shellPid
     }
 }
 

@@ -50,7 +50,7 @@ struct DebugOverlay: View {
             ForEach(store.sessions) { s in
                 HStack(spacing: 4) {
                     Circle()
-                        .fill(Color(nsColor: s.status.color))
+                        .fill(s.status.color)
                         .frame(width: 5, height: 5)
                     Text("\(s.name)")
                     if let g = store.groupForSession(s.id) {

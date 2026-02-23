@@ -1,6 +1,7 @@
 import Foundation
+import Combine
 
-enum LayoutMode: String, CaseIterable {
+enum LayoutMode: String, CaseIterable, Codable {
     case single
     case sideBySide
     case grid2x2
@@ -51,15 +52,22 @@ class SessionStore {
             return Array(group.sessionIds.compactMap { session(for: $0) }.prefix(max))
         }
 
-        // Ungrouped: use picker layout, starting with selected session
+        // Ungrouped: show first maxPanes sessions in natural order,
+        // swapping the selected session in if it's outside the window.
         let maxPanes = layout.maxPanes
-        var visible: [TerminalSession] = []
-        if let s = selectedSession { visible.append(s) }
-        for s in ungroupedSessions where s.id != selectedSessionId {
-            if visible.count >= maxPanes { break }
-            visible.append(s)
+        let ungrouped = ungroupedSessions
+        guard !ungrouped.isEmpty else { return [] }
+
+        var visible = Array(ungrouped.prefix(maxPanes))
+        if let selectedId = selectedSessionId,
+           !visible.contains(where: { $0.id == selectedId }),
+           let selected = ungrouped.first(where: { $0.id == selectedId }) {
+            // Replace the last slot with the selected session
+            if !visible.isEmpty {
+                visible[visible.count - 1] = selected
+            }
         }
-        return visible.isEmpty ? Array(ungroupedSessions.prefix(1)) : visible
+        return visible
     }
 
     var currentLayout: LayoutMode {
@@ -94,7 +102,7 @@ class SessionStore {
 
     func removeSession(_ id: UUID) {
         if let s = session(for: id) {
-            s.terminalView = nil
+            s.process = nil
         }
         sessions.removeAll { $0.id == id }
         for group in groups {
@@ -175,5 +183,69 @@ class SessionStore {
         guard let selectedId = selectedSessionId, selectedId != otherId else { return }
         dropSession(otherId, onto: selectedId)
         selectSession(selectedId)
+    }
+
+    // MARK: - Persistence
+
+    private struct Snapshot: Codable {
+        struct GroupSnapshot: Codable {
+            let name: String
+            let sessionIndices: [Int]
+        }
+
+        let sessionNames: [String]
+        let selectedIndex: Int?
+        let groups: [GroupSnapshot]
+        let layout: LayoutMode
+        let fontSize: CGFloat
+    }
+
+    private static let defaultsKey = "sessionStoreSnapshot"
+
+    func save() {
+        let sessionIndices = Dictionary(uniqueKeysWithValues: sessions.enumerated().map { ($0.element.id, $0.offset) })
+        let groupSnapshots = groups.compactMap { group -> Snapshot.GroupSnapshot? in
+            let indices = group.sessionIds.compactMap { sessionIndices[$0] }
+            guard !indices.isEmpty else { return nil }
+            return Snapshot.GroupSnapshot(name: group.name, sessionIndices: indices)
+        }
+        let selectedIdx = selectedSessionId.flatMap { sessionIndices[$0] }
+        let snapshot = Snapshot(
+            sessionNames: sessions.map(\.name),
+            selectedIndex: selectedIdx,
+            groups: groupSnapshots,
+            layout: layout,
+            fontSize: fontSize
+        )
+        if let data = try? JSONEncoder().encode(snapshot) {
+            UserDefaults.standard.set(data, forKey: Self.defaultsKey)
+        }
+    }
+
+    func restoreIfAvailable() {
+        guard let data = UserDefaults.standard.data(forKey: Self.defaultsKey),
+              let snapshot = try? JSONDecoder().decode(Snapshot.self, from: data) else { return }
+        guard !snapshot.sessionNames.isEmpty else { return }
+
+        for name in snapshot.sessionNames {
+            createSession(name: name)
+        }
+
+        for groupSnap in snapshot.groups {
+            let ids = groupSnap.sessionIndices.compactMap { idx -> UUID? in
+                guard idx >= 0, idx < sessions.count else { return nil }
+                return sessions[idx].id
+            }
+            if ids.count >= 2 {
+                createGroup(name: groupSnap.name, sessionIds: ids)
+            }
+        }
+
+        layout = snapshot.layout
+        fontSize = snapshot.fontSize
+
+        if let idx = snapshot.selectedIndex, idx >= 0, idx < sessions.count {
+            selectedSessionId = sessions[idx].id
+        }
     }
 }
