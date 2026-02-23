@@ -20,10 +20,8 @@
 		9FCBED262D502973C1B82198 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D9A0B420A0C837F3E2908E0 /* SidebarView.swift */; };
 		AFCCC7003843A30FAB861FCC /* GridContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018CC28FF349130BBC3CCD65 /* GridContainerView.swift */; };
 		B3DCEBFF2DE7053BC47A85D8 /* TerminalPaneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6649F1FE2062BB04DDCAD9 /* TerminalPaneView.swift */; };
-		B583C8AFFC9B0AA89039BF3E /* KeyBindings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CEC686281089711DB7E06EE /* KeyBindings.swift */; };
 		B8F5A346E44E72F7AF65B601 /* AppIcon.svg in Resources */ = {isa = PBXBuildFile; fileRef = 76AF8D091A8C2D9240C4D391 /* AppIcon.svg */; };
 		E43B6CC7BC6EF43345FE2EB2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABE3398E1FD81472B02830FA /* ContentView.swift */; };
-		E58CF118C3E4BF7918600002 /* ThemePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8710D6107817D480B79B0151 /* ThemePickerView.swift */; };
 		E992931BB665ACABD809ED2F /* HiveTermApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C0F3C0AAA3D48B7211B02E3 /* HiveTermApp.swift */; };
 		F949AECCBE075A314BAE7855 /* ITermColorsParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 395AFAF07C6570726817289A /* ITermColorsParser.swift */; };
 		FD203B9C03CBC9B3BC1A4215 /* SessionGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD801BAFFB3B6F4BB6359827 /* SessionGroup.swift */; };
@@ -49,9 +47,7 @@
 		5D885E6532AF1CE062627C1C /* AppIconSimple.svg */ = {isa = PBXFileReference; path = AppIconSimple.svg; sourceTree = "<group>"; };
 		68535E58AF8B96AB4F37150A /* HiveTerm.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HiveTerm.entitlements; sourceTree = "<group>"; };
 		6BC97A20A24599B6ADF94899 /* SidebarTabRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarTabRow.swift; sourceTree = "<group>"; };
-		6CEC686281089711DB7E06EE /* KeyBindings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyBindings.swift; sourceTree = "<group>"; };
 		76AF8D091A8C2D9240C4D391 /* AppIcon.svg */ = {isa = PBXFileReference; path = AppIcon.svg; sourceTree = "<group>"; };
-		8710D6107817D480B79B0151 /* ThemePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemePickerView.swift; sourceTree = "<group>"; };
 		8C0F3C0AAA3D48B7211B02E3 /* HiveTermApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveTermApp.swift; sourceTree = "<group>"; };
 		951DD3F63F47936AC5AB2EE4 /* HiveTermTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HiveTermTests.swift; sourceTree = "<group>"; };
 		ABE3398E1FD81472B02830FA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -83,7 +79,6 @@
 				395AFAF07C6570726817289A /* ITermColorsParser.swift */,
 				F18538D679671A90450CA038 /* TerminalTheme.swift */,
 				AECDA279A029F8CDD80DC419 /* ThemeManager.swift */,
-				8710D6107817D480B79B0151 /* ThemePickerView.swift */,
 			);
 			path = Theme;
 			sourceTree = "<group>";
@@ -132,7 +127,6 @@
 		7D31423A3833BB0ADBBCECCA /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				6CEC686281089711DB7E06EE /* KeyBindings.swift */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -296,7 +290,6 @@
 				E992931BB665ACABD809ED2F /* HiveTermApp.swift in Sources */,
 				F949AECCBE075A314BAE7855 /* ITermColorsParser.swift in Sources */,
 				970758DAE24A61859173089D /* InputDetector.swift in Sources */,
-				B583C8AFFC9B0AA89039BF3E /* KeyBindings.swift in Sources */,
 				FD203B9C03CBC9B3BC1A4215 /* SessionGroup.swift in Sources */,
 				32A25D0A40DF472AA9FD4D60 /* SessionStore.swift in Sources */,
 				964A4FAAB2A5FC941968CE1A /* SidebarTabRow.swift in Sources */,
@@ -305,7 +298,6 @@
 				7C9BEBA3682256F1F0A9CA7A /* TerminalSession.swift in Sources */,
 				6F19D1F9838E6D88A2C30737 /* TerminalTheme.swift in Sources */,
 				2802DFEC8471AB3AA94229C6 /* ThemeManager.swift in Sources */,
-				E58CF118C3E4BF7918600002 /* ThemePickerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

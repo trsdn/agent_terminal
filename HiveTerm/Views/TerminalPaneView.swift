@@ -127,11 +127,11 @@ class TerminalHostView: NSView {
         addSubview(container)
         container.isHidden = true
 
-        // Hide SwiftTerm's built-in legacy scroller (it's a direct subview)
+        // Make SwiftTerm's built-in legacy scroller invisible but functional
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             for subview in tv.subviews {
                 if let scroller = subview as? NSScroller {
-                    scroller.isHidden = true
+                    scroller.alphaValue = 0
                 }
             }
         }
@@ -212,7 +212,6 @@ class TerminalHostView: NSView {
     override func layout() {
         super.layout()
         layoutTerminals()
-        startPendingProcesses(theme: currentTheme)
     }
 
     private func layoutTerminals() {
@@ -264,7 +263,7 @@ class TerminalHostView: NSView {
 // MARK: - Coordinator (per terminal)
 
 class TerminalCoordinator: NSObject, LocalProcessTerminalViewDelegate {
-    let session: TerminalSession
+    weak var session: TerminalSession?
     var outputMonitor: TerminalOutputMonitor?
 
     init(session: TerminalSession) {
@@ -272,21 +271,15 @@ class TerminalCoordinator: NSObject, LocalProcessTerminalViewDelegate {
     }
 
     func processTerminated(source: TerminalView, exitCode: Int32?) {
-        DispatchQueue.main.async {
-            self.session.status = .idle
-            self.session.isProcessStarted = false
+        DispatchQueue.main.async { [weak self] in
+            self?.session?.status = .idle
+            self?.session?.isProcessStarted = false
         }
     }
 
     func sizeChanged(source: LocalProcessTerminalView, newCols: Int, newRows: Int) {}
 
-    func setTerminalTitle(source: LocalProcessTerminalView, title: String) {
-        DispatchQueue.main.async {
-            if !self.session.isRenaming {
-                self.session.name = title.isEmpty ? "Shell" : title
-            }
-        }
-    }
+    func setTerminalTitle(source: LocalProcessTerminalView, title: String) {}
 
     func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {}
 }
@@ -301,12 +294,7 @@ class TerminalOutputMonitor: NSObject, TerminalViewDelegate {
     }
 
     func sizeChanged(source: TerminalView, newCols: Int, newRows: Int) {}
-    func setTerminalTitle(source: TerminalView, title: String) {
-        DispatchQueue.main.async { [weak self] in
-            guard let session = self?.session, !session.isRenaming else { return }
-            session.name = title.isEmpty ? "Shell" : title
-        }
-    }
+    func setTerminalTitle(source: TerminalView, title: String) {}
     func scrolled(source: TerminalView, position: Double) {}
     func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {}
     func requestOpenLink(source: TerminalView, link: String, params: [String : String]) {}
@@ -315,22 +303,23 @@ class TerminalOutputMonitor: NSObject, TerminalViewDelegate {
     func iTermContent(source: TerminalView, content: ArraySlice<UInt8>) {}
 
     func rangeChanged(source: TerminalView, startY: Int, endY: Int) {
-        guard let session = session else { return }
-        session.lastOutputTime = Date()
-        session.status = .running
-
         let terminal = source.getTerminal()
         let pos = terminal.getCursorLocation()
-        if let line = terminal.getLine(row: pos.y) {
-            let text = line.translateToString(trimRight: true)
-            InputDetector.checkLineForInputPrompt(text, session: session)
+        let text = terminal.getLine(row: pos.y)?.translateToString(trimRight: true)
+        DispatchQueue.main.async { [weak self] in
+            guard let session = self?.session else { return }
+            session.lastOutputTime = Date()
+            session.status = .running
+            if let text { InputDetector.checkLineForInputPrompt(text, session: session) }
         }
     }
 
     func send(source: TerminalView, data: ArraySlice<UInt8>) {
-        session?.status = .running
         if let termView = source as? LocalProcessTerminalView {
             termView.process.send(data: data)
+        }
+        DispatchQueue.main.async { [weak self] in
+            self?.session?.status = .running
         }
     }
 }

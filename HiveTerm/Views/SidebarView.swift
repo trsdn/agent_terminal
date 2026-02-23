@@ -170,17 +170,6 @@ struct SidebarView: View {
 
     // MARK: - Drop Handling
 
-    private func handleDrop(_ providers: [NSItemProvider], onto targetId: UUID) -> Bool {
-        guard let provider = providers.first else { return false }
-        provider.loadObject(ofClass: NSString.self) { object, _ in
-            guard let str = object as? String, let draggedId = UUID(uuidString: str) else { return }
-            DispatchQueue.main.async {
-                store.dropSession(draggedId, onto: targetId)
-            }
-        }
-        return true
-    }
-
     private func handleGroupDrop(_ providers: [NSItemProvider], groupId: UUID) -> Bool {
         guard let provider = providers.first else { return false }
         provider.loadObject(ofClass: NSString.self) { object, _ in
