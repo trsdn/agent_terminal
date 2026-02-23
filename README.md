@@ -80,8 +80,8 @@ The key architectural decision: a single `TerminalHostView` (NSView) owns all te
 **Requirements:** Xcode 15+ · macOS 14 Sonoma
 
 ```bash
-git clone https://github.com/trsdn/agent_terminal.git
-cd agent_terminal
+git clone https://github.com/trsdn/HiveTerm.git
+cd HiveTerm
 open HiveTerm.xcodeproj
 ```
 
