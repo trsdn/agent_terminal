@@ -894,13 +894,40 @@
 <!-- Install -->
 <section class="install reveal" id="install">
     <div class="container">
+        <!-- Option 1: Download -->
+        <div class="install-card" style="margin-bottom: 24px;">
+            <div class="section-label">Quick Install</div>
+            <h2>Download. Unzip. Run.</h2>
+            <p>Pre-built binary for macOS 14+. No Xcode required.</p>
+
+            <div class="install-steps">
+                <div class="code-block" onclick="copyCode(this)">
+                    <span class="prompt-char">$</span>
+                    <code>curl -L https://github.com/trsdn/HiveTerm/releases/latest/download/HiveTerm.zip -o HiveTerm.zip</code>
+                    <span class="copy-hint">COPY</span>
+                </div>
+                <div class="code-block" onclick="copyCode(this)">
+                    <span class="prompt-char">$</span>
+                    <code>unzip HiveTerm.zip -d /Applications/</code>
+                    <span class="copy-hint">COPY</span>
+                </div>
+                <div class="code-block" onclick="copyCode(this)">
+                    <span class="prompt-char">$</span>
+                    <code>xattr -cr /Applications/HiveTerm.app && open /Applications/HiveTerm.app</code>
+                    <span class="copy-hint">COPY</span>
+                </div>
+            </div>
+
+            <a href="https://github.com/trsdn/HiveTerm/releases/latest" class="btn btn-primary" style="margin-top: 24px;" target="_blank" rel="noopener">Download Latest Release</a>
+        </div>
+
+        <!-- Option 2: Build from source -->
         <div class="install-card">
-            <div class="section-label">Get Started</div>
+            <div class="section-label">Build from Source</div>
             <h2>Clone. Build. Run.</h2>
             <p>Requires Xcode 15+ and macOS 14 Sonoma.</p>
 
             <div class="install-steps">
-                <div class="step-label">1. Clone &amp; build</div>
                 <div class="code-block" onclick="copyCode(this)">
                     <span class="prompt-char">$</span>
                     <code>git clone https://github.com/trsdn/HiveTerm.git && cd HiveTerm</code>
@@ -911,18 +938,9 @@
                     <code>xcodebuild -scheme HiveTerm -configuration Release build</code>
                     <span class="copy-hint">COPY</span>
                 </div>
-
-                <div class="step-label">2. Copy to Applications</div>
                 <div class="code-block" onclick="copyCode(this)">
                     <span class="prompt-char">$</span>
-                    <code>cp -R build/Release/HiveTerm.app /Applications/</code>
-                    <span class="copy-hint">COPY</span>
-                </div>
-
-                <div class="step-label">3. Bypass Gatekeeper <span style="color: var(--text-muted)">(not notarized)</span></div>
-                <div class="code-block" onclick="copyCode(this)">
-                    <span class="prompt-char">$</span>
-                    <code>xattr -cr /Applications/HiveTerm.app</code>
+                    <code>cp -R build/Release/HiveTerm.app /Applications/ && xattr -cr /Applications/HiveTerm.app</code>
                     <span class="copy-hint">COPY</span>
                 </div>
             </div>

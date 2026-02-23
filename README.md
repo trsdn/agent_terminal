@@ -77,17 +77,23 @@ The key architectural decision: a single `TerminalHostView` (NSView) owns all te
 
 ## Getting Started
 
+### Download (no Xcode required)
+
+```bash
+curl -L https://github.com/trsdn/HiveTerm/releases/latest/download/HiveTerm.zip -o HiveTerm.zip
+unzip HiveTerm.zip -d /Applications/
+xattr -cr /Applications/HiveTerm.app
+open /Applications/HiveTerm.app
+```
+
+### Build from source
+
 **Requirements:** Xcode 15+ · macOS 14 Sonoma
 
 ```bash
 git clone https://github.com/trsdn/HiveTerm.git && cd HiveTerm
 xcodebuild -scheme HiveTerm -configuration Release build
 cp -R build/Release/HiveTerm.app /Applications/
-```
-
-Since HiveTerm is not notarized, remove the quarantine attribute before first launch:
-
-```bash
 xattr -cr /Applications/HiveTerm.app
 ```
 
