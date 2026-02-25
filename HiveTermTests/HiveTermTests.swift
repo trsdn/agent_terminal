@@ -152,12 +152,16 @@ final class HiveTermTests: XCTestCase {
         let s3 = store.createSession(name: "C")
         let s4 = store.createSession(name: "D")
 
-        let group = store.createGroup(sessionIds: [s1.id])
-        XCTAssertEqual(group.layoutMode, .single)
+        // Single-member group is rejected (not added to store.groups)
+        let rejected = store.createGroup(sessionIds: [s1.id])
+        XCTAssertEqual(rejected.layoutMode, .single)
+        XCTAssertEqual(store.groups.count, 0, "1-member group should not persist")
 
-        store.addToGroup(group.id, sessionId: s2.id)
+        // 2 members → sideBySide
+        let group = store.createGroup(sessionIds: [s1.id, s2.id])
         XCTAssertEqual(group.layoutMode, .sideBySide)
 
+        // 3 and 4 members → grid2x2
         store.addToGroup(group.id, sessionId: s3.id)
         store.addToGroup(group.id, sessionId: s4.id)
         XCTAssertEqual(group.layoutMode, .grid2x2)
@@ -183,11 +187,22 @@ final class HiveTermTests: XCTestCase {
 
         store.createGroup(sessionIds: [s1.id, s2.id])
         store.removeSession(s1.id)
-        XCTAssertEqual(store.groups.count, 1)
-        XCTAssertEqual(store.groups[0].sessionIds, [s2.id])
-
-        store.removeSession(s2.id)
+        // Group with 1 member is auto-dissolved
         XCTAssertEqual(store.groups.count, 0)
+    }
+
+    func testRemoveFromGroupDissolvesSmallGroup() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+
+        store.createGroup(sessionIds: [s1.id, s2.id])
+        XCTAssertEqual(store.groups.count, 1)
+
+        store.removeFromGroup(s1.id)
+        // Group with 1 member should auto-dissolve
+        XCTAssertEqual(store.groups.count, 0)
+        XCTAssertEqual(store.ungroupedSessions.count, 2)
     }
 
     func testDropSelfIsNoop() {
@@ -628,5 +643,749 @@ final class TerminalThemeDerivedTests: XCTestCase {
         let data = try JSONEncoder().encode(original)
         let decoded = try JSONDecoder().decode(TerminalTheme.self, from: data)
         XCTAssertEqual(original, decoded)
+    }
+}
+
+// MARK: - Issue 1: Observation Chain Tests
+// Verify that @Observable tracking fires across object boundaries.
+// The original bug: mutating group.sessionIds didn't trigger updateNSView
+// because SwiftUI wasn't detecting the cross-object property change.
+
+import Observation
+
+final class ObservationChainTests: XCTestCase {
+
+    func testObservationFiresOnCrossObjectGroupMutation() {
+        // This is the exact scenario that caused the "remove from group" bug.
+        // group.sessionIds changes (on SessionGroup), but store.groups doesn't change.
+        // Observation must still fire because visibleSessions accessed group.sessionIds.
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        let s3 = store.createSession(name: "C")
+        store.createGroup(sessionIds: [s1.id, s2.id, s3.id])
+        store.selectSession(s1.id)
+
+        var observationFired = false
+        withObservationTracking {
+            _ = store.visibleSessions
+        } onChange: {
+            observationFired = true
+        }
+
+        // Remove s3: group goes 3→2, store.groups stays the same array
+        store.removeFromGroup(s3.id)
+        XCTAssertEqual(store.groups.count, 1, "Group should still exist (2 members)")
+        XCTAssertTrue(observationFired, "Observation must fire when group.sessionIds changes")
+    }
+
+    func testObservationFiresOnGroupDissolution() {
+        // When a group dissolves, store.groups changes — observation should definitely fire.
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.createGroup(sessionIds: [s1.id, s2.id])
+        store.selectSession(s1.id)
+
+        var observationFired = false
+        withObservationTracking {
+            _ = store.visibleSessions
+            _ = store.currentLayout
+        } onChange: {
+            observationFired = true
+        }
+
+        store.removeFromGroup(s2.id)
+        XCTAssertEqual(store.groups.count, 0, "Group should dissolve (1 member)")
+        XCTAssertTrue(observationFired, "Observation must fire when group dissolves")
+    }
+
+    func testObservationFiresOnLayoutChange() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        _ = store.createSession(name: "B")
+        _ = store.createSession(name: "C")
+        store.selectSession(s1.id)
+        store.layout = .single
+
+        var observationFired = false
+        withObservationTracking {
+            _ = store.currentLayout
+        } onChange: {
+            observationFired = true
+        }
+
+        store.layout = .grid2x2
+        XCTAssertTrue(observationFired, "Observation must fire when layout changes")
+    }
+
+    func testObservationFiresOnSelectionChange() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.selectSession(s1.id)
+
+        var observationFired = false
+        withObservationTracking {
+            _ = store.visibleSessions
+        } onChange: {
+            observationFired = true
+        }
+
+        store.selectSession(s2.id)
+        XCTAssertTrue(observationFired, "Observation must fire when selection changes")
+    }
+}
+
+// MARK: - Issue 3: User Workflow Tests
+// Multi-step sequences that mirror real user interactions,
+// asserting user-facing state (visibleSessions, currentLayout) at each step.
+
+final class UserWorkflowTests: XCTestCase {
+
+    /// User creates 3 sessions, groups 2 of them, then right-clicks "Remove from Group"
+    func testWorkflowGroupThenRemove() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "Claude")
+        let s2 = store.createSession(name: "Copilot")
+        let _ = store.createSession(name: "Codex")
+
+        // Step 1: User drags Copilot onto Claude to create a group
+        store.dropSession(s2.id, onto: s1.id)
+        store.selectSession(s1.id)
+
+        // Verify: 2 terminals visible side-by-side
+        XCTAssertEqual(store.visibleSessions.map(\.name), ["Claude", "Copilot"])
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+
+        // Step 2: User right-clicks Copilot → "Remove from Group"
+        store.removeFromGroup(s2.id)
+
+        // Verify: group dissolved, back to ungrouped view
+        XCTAssertNil(store.activeGroup, "No active group after dissolution")
+        // store.layout was set to .sideBySide by createGroup, 3 ungrouped sessions,
+        // currentLayout caps: count=3, layout=.sideBySide → returns .sideBySide
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+        XCTAssertEqual(store.visibleSessions.count, 2)
+    }
+
+    /// User builds up a 4-pane grid, then removes sessions one by one
+    func testWorkflowBuildGridThenShrink() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        let s3 = store.createSession(name: "C")
+        let s4 = store.createSession(name: "D")
+
+        store.createGroup(sessionIds: [s1.id, s2.id, s3.id, s4.id])
+        store.selectSession(s1.id)
+
+        // 4 panes in grid
+        XCTAssertEqual(store.visibleSessions.count, 4)
+        XCTAssertEqual(store.currentLayout, .grid2x2)
+
+        // Remove D: 4→3, still grid2x2
+        store.removeFromGroup(s4.id)
+        XCTAssertEqual(store.visibleSessions.count, 3)
+        XCTAssertEqual(store.currentLayout, .grid2x2)
+
+        // Remove C: 3→2, switches to sideBySide
+        store.removeFromGroup(s3.id)
+        XCTAssertEqual(store.visibleSessions.count, 2)
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+
+        // Remove B: 2→1, group dissolves
+        store.removeFromGroup(s2.id)
+        XCTAssertNil(store.activeGroup)
+        // 4 ungrouped sessions now, store.layout = .grid2x2 (set by createGroup)
+        XCTAssertEqual(store.currentLayout, .grid2x2)
+    }
+
+    /// User groups two sessions, then closes one via the sidebar
+    func testWorkflowCloseSessionInGroup() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        let _ = store.createSession(name: "C")
+
+        store.createGroup(sessionIds: [s1.id, s2.id])
+        store.selectSession(s1.id)
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+
+        // Close s2 entirely (not just ungroup)
+        store.removeSession(s2.id)
+
+        // Group dissolved (1 member), s2 gone from sessions
+        XCTAssertEqual(store.sessions.count, 2)
+        XCTAssertNil(store.activeGroup)
+        // s1 still selected
+        XCTAssertEqual(store.selectedSessionId, s1.id)
+    }
+
+    /// User uses groupSelectedWith from context menu
+    func testWorkflowGroupSelectedWith() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.selectSession(s1.id)
+
+        // Step 1: "Group with B" from context menu
+        store.groupSelectedWith(s2.id)
+
+        // Verify: group created, s1 still selected, side-by-side
+        XCTAssertEqual(store.selectedSessionId, s1.id)
+        XCTAssertEqual(store.visibleSessions.count, 2)
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+
+        // Step 2: Ungroup s2
+        store.removeFromGroup(s2.id)
+
+        // Group dissolved, back to ungrouped
+        XCTAssertNil(store.activeGroup)
+    }
+}
+
+// MARK: - Issue 4: Boundary Transition Tests
+// Systematically test every group member count transition
+// and every layout boundary, asserting on user-facing derived state.
+
+final class BoundaryTransitionTests: XCTestCase {
+
+    // MARK: - Group member transitions: assert visibleSessions + currentLayout
+
+    func testGroupTransition4to3() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        let s3 = store.createSession(name: "C")
+        let s4 = store.createSession(name: "D")
+        store.createGroup(sessionIds: [s1.id, s2.id, s3.id, s4.id])
+        store.selectSession(s1.id)
+
+        store.removeFromGroup(s4.id)
+
+        XCTAssertEqual(store.visibleSessions.count, 3)
+        XCTAssertEqual(store.currentLayout, .grid2x2, "3 members still use grid2x2")
+        XCTAssertNotNil(store.activeGroup, "Group survives with 3 members")
+    }
+
+    func testGroupTransition3to2() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        let s3 = store.createSession(name: "C")
+        store.createGroup(sessionIds: [s1.id, s2.id, s3.id])
+        store.selectSession(s1.id)
+
+        store.removeFromGroup(s3.id)
+
+        XCTAssertEqual(store.visibleSessions.count, 2)
+        XCTAssertEqual(store.currentLayout, .sideBySide, "2 members switch to sideBySide")
+        XCTAssertNotNil(store.activeGroup, "Group survives with 2 members")
+    }
+
+    func testGroupTransition2to1Dissolves() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.createGroup(sessionIds: [s1.id, s2.id])
+        store.selectSession(s1.id)
+
+        store.removeFromGroup(s2.id)
+
+        XCTAssertNil(store.activeGroup, "Group must dissolve at 1 member")
+        // Both sessions now ungrouped. store.layout = .sideBySide (set by createGroup).
+        // currentLayout: count=2, layout=.sideBySide → .sideBySide
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+        XCTAssertEqual(store.visibleSessions.count, 2)
+    }
+
+    // MARK: - Ungrouped layout capping boundaries
+
+    func testUngroupedLayoutCap0Sessions() {
+        let store = SessionStore()
+        store.layout = .grid2x2
+        // No sessions at all
+        XCTAssertEqual(store.visibleSessions.count, 0)
+    }
+
+    func testUngroupedLayoutCap1Session() {
+        let store = SessionStore()
+        _ = store.createSession(name: "A")
+        store.layout = .grid2x2
+        XCTAssertEqual(store.currentLayout, .single, "1 session always caps to single")
+    }
+
+    func testUngroupedLayoutCap2SessionsSideBySide() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        _ = store.createSession(name: "B")
+        store.layout = .sideBySide
+        store.selectSession(s1.id)
+        // 2 sessions with sideBySide → no capping needed
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+    }
+
+    func testUngroupedLayoutCap2SessionsGridCappedToSideBySide() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        _ = store.createSession(name: "B")
+        store.layout = .grid2x2
+        store.selectSession(s1.id)
+        // 2 sessions with grid2x2 → capped to sideBySide
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+    }
+
+    func testUngroupedLayoutExactly4SessionsGrid() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        _ = store.createSession(name: "B")
+        _ = store.createSession(name: "C")
+        _ = store.createSession(name: "D")
+        store.layout = .grid2x2
+        store.selectSession(s1.id)
+        XCTAssertEqual(store.currentLayout, .grid2x2)
+        XCTAssertEqual(store.visibleSessions.count, 4)
+    }
+}
+
+// MARK: - Issue 5: Contract-Based Tests
+// Assert on user-facing outcomes (visibleSessions, currentLayout, activeGroup)
+// rather than implementation details (groups.count, sessionIds).
+
+final class ContractTests: XCTestCase {
+
+    // MARK: - removeSession contract
+
+    func testRemoveNonSelectedSessionPreservesView() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.selectSession(s1.id)
+        store.layout = .sideBySide
+
+        let visibleBefore = store.visibleSessions.map(\.name)
+        store.removeSession(s2.id)
+
+        // Contract: selection unchanged, visible sessions update to reflect removal
+        XCTAssertEqual(store.selectedSessionId, s1.id)
+        XCTAssertEqual(store.visibleSessions.count, 1)
+        XCTAssertFalse(store.visibleSessions.contains { $0.name == "B" })
+        XCTAssertNotEqual(visibleBefore, store.visibleSessions.map(\.name))
+    }
+
+    func testRemoveLastSessionLeavesEmptyView() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+
+        store.removeSession(s1.id)
+
+        // Contract: no selection, no visible sessions
+        XCTAssertNil(store.selectedSessionId)
+        XCTAssertTrue(store.visibleSessions.isEmpty)
+    }
+
+    // MARK: - Group dissolution contract
+
+    func testRemoveFromGroupUpdatesVisibleState() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.createGroup(sessionIds: [s1.id, s2.id])
+        store.selectSession(s1.id)
+
+        // Contract before: grouped view
+        XCTAssertNotNil(store.activeGroup)
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+
+        store.removeFromGroup(s1.id)
+
+        // Contract after: no group, layout reflects ungrouped state
+        XCTAssertNil(store.activeGroup)
+        // Both sessions visible as ungrouped (layout was set to .sideBySide by createGroup)
+        XCTAssertEqual(store.visibleSessions.count, 2)
+    }
+
+    func testRemoveSessionFromGroupUpdatesVisibleState() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.createGroup(sessionIds: [s1.id, s2.id])
+        store.selectSession(s1.id)
+
+        store.removeSession(s2.id)
+
+        // Contract: group dissolved, s2 gone entirely
+        XCTAssertNil(store.activeGroup)
+        XCTAssertEqual(store.visibleSessions.count, 1)
+        XCTAssertEqual(store.visibleSessions[0].name, "A")
+    }
+
+    // MARK: - createGroup contract
+
+    func testCreateGroupStealsFromOtherGroup() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        let s3 = store.createSession(name: "C")
+
+        store.createGroup(sessionIds: [s1.id, s2.id])
+        store.selectSession(s1.id)
+        XCTAssertEqual(store.visibleSessions.count, 2)
+
+        // Steal s1 into new group with s3
+        store.createGroup(sessionIds: [s1.id, s3.id])
+        store.selectSession(s1.id)
+
+        // Contract: s1 is now in new group with s3, old group dissolved
+        XCTAssertEqual(store.visibleSessions.map(\.name).sorted(), ["A", "C"])
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+    }
+
+    // MARK: - groupSelectedWith contract
+
+    func testGroupSelectedWithCreatesVisibleGroup() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.selectSession(s1.id)
+
+        store.groupSelectedWith(s2.id)
+
+        // Contract: both sessions visible, side-by-side, s1 still selected
+        XCTAssertEqual(store.selectedSessionId, s1.id)
+        XCTAssertEqual(store.visibleSessions.count, 2)
+        XCTAssertEqual(store.currentLayout, .sideBySide)
+    }
+
+    func testGroupSelectedWithSelfChangesNothing() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        _ = store.createSession(name: "B")
+        store.selectSession(s1.id)
+        store.layout = .single
+
+        let visibleBefore = store.visibleSessions.map(\.name)
+        let layoutBefore = store.currentLayout
+
+        store.groupSelectedWith(s1.id)
+
+        // Contract: nothing changes
+        XCTAssertEqual(store.visibleSessions.map(\.name), visibleBefore)
+        XCTAssertEqual(store.currentLayout, layoutBefore)
+        XCTAssertNil(store.activeGroup)
+    }
+
+    // MARK: - visibleSessions swap contract
+
+    func testSwapReplacesLastSlotNotFirst() {
+        let store = SessionStore()
+        let _ = store.createSession(name: "A")
+        let _ = store.createSession(name: "B")
+        let _ = store.createSession(name: "C")
+        let _ = store.createSession(name: "D")
+        let s5 = store.createSession(name: "E")
+
+        store.layout = .grid2x2
+        store.selectSession(s5.id)
+
+        // Contract: A, B, C stay stable in their positions. E replaces D (last slot).
+        let visible = store.visibleSessions.map(\.name)
+        XCTAssertEqual(visible, ["A", "B", "C", "E"])
+    }
+
+    // MARK: - selectSessionByIndex contract
+
+    func testSelectSessionByIndexUpdatesView() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        store.layout = .single
+        store.selectSession(s1.id)
+        XCTAssertEqual(store.visibleSessions.map(\.name), ["A"])
+
+        store.selectSessionByIndex(0) // selects A (first in sessions array)
+        XCTAssertEqual(store.selectedSessionId, s1.id)
+
+        store.selectSessionByIndex(1)
+        XCTAssertEqual(store.selectedSessionId, s2.id)
+        XCTAssertEqual(store.visibleSessions.map(\.name), ["B"])
+    }
+
+    func testSelectSessionByIndexBoundsAreNoOp() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        store.selectSession(s1.id)
+        let viewBefore = store.visibleSessions.map(\.name)
+
+        store.selectSessionByIndex(-1)
+        store.selectSessionByIndex(99)
+
+        XCTAssertEqual(store.selectedSessionId, s1.id)
+        XCTAssertEqual(store.visibleSessions.map(\.name), viewBefore)
+    }
+
+    // MARK: - waitingCount contract
+
+    func testWaitingCountReflectsUserFacingState() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        _ = store.createSession(name: "C")
+
+        XCTAssertEqual(store.waitingCount, 0)
+
+        s1.status = .waiting
+        s2.status = .waiting
+        XCTAssertEqual(store.waitingCount, 2)
+
+        s1.status = .running
+        XCTAssertEqual(store.waitingCount, 1)
+    }
+
+    // MARK: - addToGroup idempotency contract
+
+    func testAddToGroupTwiceDoesNotDuplicate() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+
+        let group = store.createGroup(sessionIds: [s1.id, s2.id])
+        store.selectSession(s1.id)
+        let visibleBefore = store.visibleSessions.count
+
+        store.addToGroup(group.id, sessionId: s1.id)
+
+        // Contract: visible state unchanged, no duplicate
+        XCTAssertEqual(store.visibleSessions.count, visibleBefore)
+    }
+
+    // MARK: - dropSession reorder contract
+
+    func testDropReorderPreservesVisibleSessions() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        let s3 = store.createSession(name: "C")
+
+        store.createGroup(sessionIds: [s1.id, s2.id, s3.id])
+        store.selectSession(s1.id)
+
+        // Drag A onto C (move forward within group)
+        store.dropSession(s1.id, onto: s3.id)
+
+        // Contract: same 3 sessions visible, different order
+        let visible = store.visibleSessions.map(\.name)
+        XCTAssertEqual(Set(visible), Set(["A", "B", "C"]))
+        XCTAssertEqual(visible, ["B", "C", "A"], "A should move after C")
+    }
+
+    func testDropReorderBackwardWithinGroup() {
+        let store = SessionStore()
+        let s1 = store.createSession(name: "A")
+        let s2 = store.createSession(name: "B")
+        let s3 = store.createSession(name: "C")
+
+        store.createGroup(sessionIds: [s1.id, s2.id, s3.id])
+        store.selectSession(s1.id)
+
+        // Drag C onto A (move backward)
+        store.dropSession(s3.id, onto: s1.id)
+
+        let visible = store.visibleSessions.map(\.name)
+        XCTAssertEqual(visible, ["C", "A", "B"], "C should move before A")
+    }
+
+    // MARK: - session(for:) contract
+
+    func testSessionForUnknownIdReturnsNil() {
+        let store = SessionStore()
+        _ = store.createSession(name: "A")
+        XCTAssertNil(store.session(for: UUID()))
+    }
+
+    // MARK: - Persistence contract (Issue 2: traced through code)
+
+    func testSaveRestoreWithNilSelection() {
+        // Traced through restoreIfAvailable():
+        // 1. createSession("A") → sets selectedSessionId = newSession.id
+        // 2. snapshot.selectedIndex is nil → `if let idx` fails → no override
+        // Result: selectedSessionId = the restored session's id
+        let store1 = SessionStore()
+        _ = store1.createSession(name: "A")
+        store1.selectedSessionId = nil
+        store1.save()
+
+        let store2 = SessionStore()
+        store2.restoreIfAvailable()
+        XCTAssertEqual(store2.sessions.count, 1)
+        XCTAssertEqual(store2.selectedSessionId, store2.sessions[0].id,
+                       "createSession always sets selection; nil snapshot index doesn't override")
+    }
+
+    func testSaveRestoreWithOutOfBoundsSelectedIndex() {
+        // Traced through restoreIfAvailable():
+        // 1. createSession("A"), createSession("B") → selectedSessionId = sessions[1].id
+        // 2. snapshot.selectedIndex = 99 → guard fails (99 >= 2) → skips
+        // Result: selectedSessionId stays as sessions[1].id (set by last createSession)
+        let snapshot = """
+        {"sessionNames":["A","B"],"selectedIndex":99,"groups":[],"layout":"single","fontSize":13}
+        """
+        UserDefaults.standard.set(snapshot.data(using: .utf8), forKey: "sessionStoreSnapshot")
+
+        let store = SessionStore()
+        store.restoreIfAvailable()
+        XCTAssertEqual(store.sessions.count, 2)
+        XCTAssertEqual(store.selectedSessionId, store.sessions[1].id,
+                       "Out-of-bounds index skipped; last createSession wins")
+    }
+
+    func testSaveRestoreWithInvalidGroupIndices() {
+        // Traced through restoreIfAvailable():
+        // 1. Sessions restored: [A, B]
+        // 2. Group indices [0, 99]: compactMap filters 99 (>= 2) → ids = [sessions[0].id]
+        // 3. ids.count = 1 < 2 → group NOT created
+        // Result: no groups
+        let snapshot = """
+        {"sessionNames":["A","B"],"selectedIndex":0,"groups":[{"name":"Bad","sessionIndices":[0,99]}],"layout":"single","fontSize":13}
+        """
+        UserDefaults.standard.set(snapshot.data(using: .utf8), forKey: "sessionStoreSnapshot")
+
+        let store = SessionStore()
+        store.restoreIfAvailable()
+        XCTAssertEqual(store.sessions.count, 2)
+        XCTAssertNil(store.activeGroup, "Group with only 1 valid index should not be created")
+    }
+
+    override func tearDown() {
+        UserDefaults.standard.removeObject(forKey: "sessionStoreSnapshot")
+        super.tearDown()
+    }
+}
+
+// MARK: - SessionGroup Layout Mode Boundaries
+
+final class SessionGroupLayoutTests: XCTestCase {
+
+    func testLayoutModeEmptyGroup() {
+        let group = SessionGroup(name: "Empty", sessionIds: [])
+        XCTAssertEqual(group.layoutMode, .single)
+    }
+
+    func testLayoutModeThreeMembers() {
+        let group = SessionGroup(name: "Three", sessionIds: [UUID(), UUID(), UUID()])
+        XCTAssertEqual(group.layoutMode, .grid2x2)
+    }
+
+    func testLayoutModeFiveMembers() {
+        let ids = (0..<5).map { _ in UUID() }
+        let group = SessionGroup(name: "Five", sessionIds: ids)
+        XCTAssertEqual(group.layoutMode, .grid2x2)
+    }
+}
+
+// MARK: - InputDetector Pattern Coverage
+
+final class InputDetectorPatternTests: XCTestCase {
+
+    private func assertDetects(_ text: String, file: StaticString = #file, srcLine: UInt = #line) {
+        let session = TerminalSession(name: "Test")
+        session.status = .running
+        InputDetector.checkLineForInputPrompt(text, session: session)
+        XCTAssertEqual(session.status, .waiting, "Should detect: \(text)", file: file, line: srcLine)
+    }
+
+    private func assertIgnores(_ text: String, file: StaticString = #file, srcLine: UInt = #line) {
+        let session = TerminalSession(name: "Test")
+        session.status = .running
+        InputDetector.checkLineForInputPrompt(text, session: session)
+        XCTAssertEqual(session.status, .running, "Should ignore: \(text)", file: file, line: srcLine)
+    }
+
+    // All 10 patterns
+    func testPasswordPrompt() { assertDetects("Password:") }
+    func testPasswordCaseInsensitive() { assertDetects("password :") }
+    func testPassphrasePrompt() { assertDetects("Enter passphrase:") }
+    func testPassphraseCaseInsensitive() { assertDetects("PASSPHRASE :") }
+    func testYesNoParens() { assertDetects("Are you sure? (y/n)") }
+    func testYesNoLongParens() { assertDetects("Continue? (yes/no)") }
+    func testYNBracketUpperY() { assertDetects("Proceed? [Y/n]") }
+    func testYNBracketLowerY() { assertDetects("Overwrite? [y/N]") }
+    func testSudoPrompt() { assertDetects("[sudo] password for user:") }
+    func testSudoCaseInsensitive() { assertDetects("[SUDO] enter password:") }
+    func testContinueConnecting() { assertDetects("Are you sure you want to continue connecting?") }
+    func testDoYouWantTo() { assertDetects("Do you want to install this package?") }
+    func testProceed() { assertDetects("Do you wish to proceed?") }
+
+    // Edge cases
+    func testEmptyStringIsNoop() {
+        let session = TerminalSession(name: "Test")
+        session.status = .running
+        InputDetector.checkLineForInputPrompt("", session: session)
+        XCTAssertEqual(session.status, .running)
+    }
+
+    // Negative cases
+    func testShellPromptIgnored() { assertIgnores("$ ls -la") }
+    func testRegularOutputIgnored() { assertIgnores("Compiling main.swift...") }
+    func testGitLogIgnored() { assertIgnores("commit abc123") }
+}
+
+// MARK: - ThemeManager Import Tests
+
+final class ThemeManagerImportTests: XCTestCase {
+
+    override func setUp() {
+        super.setUp()
+        UserDefaults.standard.removeObject(forKey: "selectedThemeId")
+        UserDefaults.standard.removeObject(forKey: "customThemes")
+    }
+
+    override func tearDown() {
+        UserDefaults.standard.removeObject(forKey: "selectedThemeId")
+        UserDefaults.standard.removeObject(forKey: "customThemes")
+        super.tearDown()
+    }
+
+    private func makeMinimalPlist() -> Data {
+        let dict: [String: Any] = [
+            "Background Color": ["Red Component": CGFloat(0), "Green Component": CGFloat(0), "Blue Component": CGFloat(0)],
+            "Foreground Color": ["Red Component": CGFloat(1), "Green Component": CGFloat(1), "Blue Component": CGFloat(1)],
+        ]
+        return try! PropertyListSerialization.data(fromPropertyList: dict, format: .xml, options: 0)
+    }
+
+    func testImportDuplicateGetsDedupedId() throws {
+        let data = makeMinimalPlist()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Dupe Theme.itermcolors")
+        try data.write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let manager = ThemeManager()
+        let countBefore = manager.availableThemes.count
+
+        try manager.importITermColors(from: url)
+        let firstId = manager.currentTheme.id
+        XCTAssertEqual(manager.availableThemes.count, countBefore + 1)
+
+        try manager.importITermColors(from: url)
+        let secondId = manager.currentTheme.id
+        XCTAssertEqual(manager.availableThemes.count, countBefore + 2)
+        XCTAssertNotEqual(firstId, secondId, "Duplicate import should get a different ID")
+    }
+
+    func testImportedThemePersistsAcrossInstances() throws {
+        let data = makeMinimalPlist()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("Persist Theme.itermcolors")
+        try data.write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        let manager1 = ThemeManager()
+        try manager1.importITermColors(from: url)
+        let importedId = manager1.currentTheme.id
+
+        let manager2 = ThemeManager()
+        XCTAssertTrue(manager2.availableThemes.contains { $0.id == importedId }, "Imported theme should persist")
+        XCTAssertEqual(manager2.currentTheme.id, importedId, "Selected theme should persist")
     }
 }

@@ -108,7 +108,7 @@ class SessionStore {
         for group in groups {
             group.sessionIds.removeAll { $0 == id }
         }
-        groups.removeAll { $0.sessionIds.isEmpty }
+        groups.removeAll { $0.sessionIds.count <= 1 }
         if selectedSessionId == id {
             selectedSessionId = sessions.first?.id
         }
@@ -135,13 +135,19 @@ class SessionStore {
             removeFromGroup(id)
         }
         let group = SessionGroup(name: name, sessionIds: sessionIds)
+        guard group.sessionIds.count >= 2 else { return group }
         groups.append(group)
         layout = group.layoutMode
         return group
     }
 
     func addToGroup(_ groupId: UUID, sessionId: UUID) {
-        removeFromGroup(sessionId)
+        // Remove from any OTHER group (protect the target group from dissolution)
+        for group in groups where group.id != groupId {
+            group.sessionIds.removeAll { $0 == sessionId }
+        }
+        groups.removeAll { $0.id != groupId && $0.sessionIds.count <= 1 }
+
         guard let group = groups.first(where: { $0.id == groupId }) else { return }
         if !group.sessionIds.contains(sessionId) {
             group.sessionIds.append(sessionId)
@@ -153,7 +159,8 @@ class SessionStore {
         for group in groups {
             group.sessionIds.removeAll { $0 == sessionId }
         }
-        groups.removeAll { $0.sessionIds.isEmpty }
+        // Dissolve groups with 0 or 1 members — a single-member group has no meaning
+        groups.removeAll { $0.sessionIds.count <= 1 }
     }
 
     func dropSession(_ draggedId: UUID, onto targetId: UUID) {

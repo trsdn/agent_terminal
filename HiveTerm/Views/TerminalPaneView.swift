@@ -22,6 +22,9 @@ class TerminalHostView: NSView {
     private let paddingBottom: CGFloat = 8
 
     private let borderInset: CGFloat = 8
+    // SwiftTerm subtracts the legacy scroller width from effective terminal width.
+    // Since we hide the scroller, we compensate by extending the terminal view.
+    private let scrollerCompensation: CGFloat = NSScroller.scrollerWidth(for: .regular, scrollerStyle: .legacy)
 
     struct TerminalInfo {
         let containerView: NSView
@@ -127,11 +130,15 @@ class TerminalHostView: NSView {
         addSubview(container)
         container.isHidden = true
 
-        // Make SwiftTerm's built-in legacy scroller invisible but functional
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        // Make SwiftTerm's built-in legacy scroller invisible but functional.
+        // Also constrain its width to near-zero so SwiftTerm doesn't subtract
+        // ~15px from the effective terminal width.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak tv] in
+            guard let tv else { return }
             for subview in tv.subviews {
                 if let scroller = subview as? NSScroller {
                     scroller.alphaValue = 0
+                    scroller.frame = CGRect(x: tv.bounds.maxX - 1, y: 0, width: 1, height: tv.bounds.height)
                 }
             }
         }
@@ -214,9 +221,22 @@ class TerminalHostView: NSView {
         layoutTerminals()
     }
 
+    override func viewDidEndLiveResize() {
+        super.viewDidEndLiveResize()
+        // Force SwiftTerm to recalculate terminal dimensions after live resize ends
+        for (_, info) in infos {
+            info.terminalView.needsLayout = true
+            info.terminalView.needsDisplay = true
+        }
+    }
+
     private func layoutTerminals() {
         let size = bounds.size
         guard size.width > 0, size.height > 0 else { return }
+
+        // Disable implicit animations for instant frame updates during resize
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
 
         let padded = CGSize(width: size.width - paddingH * 2, height: size.height - paddingTop - paddingBottom)
         for (index, session) in currentVisible.enumerated() {
@@ -225,13 +245,21 @@ class TerminalHostView: NSView {
             rect.origin.x += paddingH
             rect.origin.y += paddingTop
             info.containerView.frame = rect
-            // Inset terminal within container so text doesn't touch the border
-            info.terminalView.frame = CGRect(
+            // Inset terminal within container so text doesn't touch the border.
+            // Extend width by scrollerCompensation so SwiftTerm's effective width
+            // (which subtracts the legacy scroller) matches the visible area.
+            let termFrame = CGRect(
                 x: borderInset, y: borderInset,
-                width: rect.width - borderInset * 2,
+                width: rect.width - borderInset * 2 + scrollerCompensation,
                 height: rect.height - borderInset * 2
             )
+            if info.terminalView.frame != termFrame {
+                info.terminalView.frame = termFrame
+                info.terminalView.needsDisplay = true
+            }
         }
+
+        CATransaction.commit()
     }
 
     private func rectForIndex(_ index: Int, count: Int, layout: LayoutMode, in size: CGSize) -> CGRect {
