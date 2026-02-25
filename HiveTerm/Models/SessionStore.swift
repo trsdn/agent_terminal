@@ -137,7 +137,6 @@ class SessionStore {
         let group = SessionGroup(name: name, sessionIds: sessionIds)
         guard group.sessionIds.count >= 2 else { return group }
         groups.append(group)
-        layout = group.layoutMode
         return group
     }
 
@@ -152,7 +151,6 @@ class SessionStore {
         if !group.sessionIds.contains(sessionId) {
             group.sessionIds.append(sessionId)
         }
-        layout = group.layoutMode
     }
 
     func removeFromGroup(_ sessionId: UUID) {

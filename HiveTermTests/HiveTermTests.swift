@@ -104,7 +104,7 @@ final class HiveTermTests: XCTestCase {
         XCTAssertEqual(group.sessionIds.count, 2)
         XCTAssertEqual(group.layoutMode, .sideBySide)
         XCTAssertEqual(store.ungroupedSessions.count, 0)
-        XCTAssertEqual(store.layout, .sideBySide, "Layout should auto-adjust to group size")
+        XCTAssertEqual(store.layout, .single, "Group operations must not change ungrouped layout")
     }
 
     func testDropCreatesGroup() {
@@ -761,12 +761,11 @@ final class UserWorkflowTests: XCTestCase {
         // Step 2: User right-clicks Copilot → "Remove from Group"
         store.removeFromGroup(s2.id)
 
-        // Verify: group dissolved, back to ungrouped view
+        // Verify: group dissolved, back to ungrouped single-pane view
         XCTAssertNil(store.activeGroup, "No active group after dissolution")
-        // store.layout was set to .sideBySide by createGroup, 3 ungrouped sessions,
-        // currentLayout caps: count=3, layout=.sideBySide → returns .sideBySide
-        XCTAssertEqual(store.currentLayout, .sideBySide)
-        XCTAssertEqual(store.visibleSessions.count, 2)
+        // store.layout stays .single (group ops don't change it), 3 ungrouped sessions
+        XCTAssertEqual(store.currentLayout, .single)
+        XCTAssertEqual(store.visibleSessions.count, 1)
     }
 
     /// User builds up a 4-pane grid, then removes sessions one by one
@@ -797,8 +796,8 @@ final class UserWorkflowTests: XCTestCase {
         // Remove B: 2→1, group dissolves
         store.removeFromGroup(s2.id)
         XCTAssertNil(store.activeGroup)
-        // 4 ungrouped sessions now, store.layout = .grid2x2 (set by createGroup)
-        XCTAssertEqual(store.currentLayout, .grid2x2)
+        // 4 ungrouped sessions, store.layout = .single (default, unmodified by groups)
+        XCTAssertEqual(store.currentLayout, .single)
     }
 
     /// User groups two sessions, then closes one via the sidebar
@@ -894,10 +893,10 @@ final class BoundaryTransitionTests: XCTestCase {
         store.removeFromGroup(s2.id)
 
         XCTAssertNil(store.activeGroup, "Group must dissolve at 1 member")
-        // Both sessions now ungrouped. store.layout = .sideBySide (set by createGroup).
-        // currentLayout: count=2, layout=.sideBySide → .sideBySide
-        XCTAssertEqual(store.currentLayout, .sideBySide)
-        XCTAssertEqual(store.visibleSessions.count, 2)
+        // Both sessions now ungrouped. store.layout = .single (default, unchanged by groups).
+        // currentLayout: count=2, layout=.single → .single
+        XCTAssertEqual(store.currentLayout, .single)
+        XCTAssertEqual(store.visibleSessions.count, 1)
     }
 
     // MARK: - Ungrouped layout capping boundaries
@@ -1000,10 +999,10 @@ final class ContractTests: XCTestCase {
 
         store.removeFromGroup(s1.id)
 
-        // Contract after: no group, layout reflects ungrouped state
+        // Contract after: no group, layout reflects ungrouped default (.single)
         XCTAssertNil(store.activeGroup)
-        // Both sessions visible as ungrouped (layout was set to .sideBySide by createGroup)
-        XCTAssertEqual(store.visibleSessions.count, 2)
+        XCTAssertEqual(store.currentLayout, .single)
+        XCTAssertEqual(store.visibleSessions.count, 1)
     }
 
     func testRemoveSessionFromGroupUpdatesVisibleState() {
