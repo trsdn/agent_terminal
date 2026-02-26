@@ -8,8 +8,8 @@ options:
 
 packages:
   SwiftTerm:
-    url: https://github.com/migueldeicaza/SwiftTerm
-    from: "1.11.0"
+    url: https://github.com/trsdn/SwiftTerm
+    branch: main
 
 targets:
   HiveTerm:
